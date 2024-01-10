@@ -1,8 +1,7 @@
 import pandas as pd
-class Schedule():
+
+class Schedule:
     def function1():
-        # Assuming the data is reloaded if the environment was reset
-        # Replace these paths with the actual paths if different
         path_to_f23_students = r"C:\Users\richa\Downloads\COOP\F23_Students.xlsx"
         path_to_f23_courses = r"C:\Users\richa\Downloads\COOP\F23_Courses_2.xlsx"
 
@@ -21,7 +20,15 @@ class Schedule():
             columns={'CRN': 'CRN2', 'course_instructor': 'Instructor'}
         )
 
-        # Saving to Excel and displaying the first few rows
+        # Reordering the columns as CRN2, Instructor, Title
+        combined_courses_filtered = combined_courses_filtered[['CRN2', 'Instructor', 'title']]
+
+        # Saving to Excel
         combined_courses_filtered.to_excel("combined_courses_filtered.xlsx", index=False)
-        combined_courses_filtered.head()
-    function1()
+
+        # Returning the first few rows
+        return combined_courses_filtered.head()
+
+# To call the function and see the output
+output = Schedule.function1()
+print(output)
