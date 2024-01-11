@@ -84,6 +84,72 @@ class Schedule:
 
         return faculty_conflicts
     
+    @staticmethod
+    def count_student_conflicts():
+        path_to_f23_students = r"C:\Users\richa\Downloads\COOP\F23_Students.xlsx"
+        path_to_possible_schedule = r"C:\Users\richa\Downloads\COOP\Possible_Schedule.xlsx"
+
+        df_students = pd.read_excel(path_to_f23_students)
+        df_possible_schedule = pd.read_excel(path_to_possible_schedule)
+
+        df_students['CRN'] = df_students['CRN'].astype(str)
+        df_possible_schedule['CRN'] = df_possible_schedule['CRN2'].str.split('-')
+        df_possible_schedule_exploded = df_possible_schedule.explode('CRN')
+        df_possible_schedule_exploded['CRN'] = df_possible_schedule_exploded['CRN'].astype(str)
+
+        df_merged = pd.merge(df_students, df_possible_schedule_exploded, on='CRN', how='left')
+
+        def has_time_overlap(schedule):
+            schedule_grouped = schedule.groupby('EXAM DAY')
+            for day, day_schedule in schedule_grouped:
+                time_slots = day_schedule['NewTime'].tolist()
+                if len(time_slots) != len(set(time_slots)):
+                    return True
+            return False
+
+        student_conflicts = 0
+        students_with_conflicts = []
+
+        for student in df_merged['STUDENT NAME'].unique():
+            student_schedule = df_merged[df_merged['STUDENT NAME'] == student]
+            if has_time_overlap(student_schedule):
+                student_conflicts += 1
+                students_with_conflicts.append(student)
+
+        return student_conflicts, students_with_conflicts
+    
+    @staticmethod
+    def count_room_conflicts():
+        path_to_room_capacities = r"C:\Users\richa\Downloads\COOP\ClassroomsF23.xlsx"
+        path_to_possible_schedule = r"C:\Users\richa\Downloads\COOP\Possible_Schedule.xlsx"
+
+        # Load the datasets
+        df_room_capacities = pd.read_excel(path_to_room_capacities)
+        df_possible_schedule = pd.read_excel(path_to_possible_schedule)
+
+        # Merge the schedule with room capacities
+        df_merged = pd.merge(df_possible_schedule, df_room_capacities, left_on='Final Exam Room', right_on='ROOM NAME', how='left')
+
+        # Identify conflicts
+        conflict_rooms = df_merged[df_merged['Count'] > df_merged['CAPACITY']]
+        conflict_details = conflict_rooms[['Final Exam Room', 'Count', 'CAPACITY']]
+
+        # Count conflicts
+        num_conflicts = conflict_rooms.shape[0]
+
+        return num_conflicts, conflict_details
+
+# To call the function and get the number of room conflicts and the details of conflicts
+num_conflicts, conflict_details = Schedule.count_room_conflicts()
+print(f"Number of room too small conflicts: {num_conflicts}")
+print("Details of room conflicts:\n", conflict_details)
+
+# To call the function and get the number of student conflicts and the list of students with conflicts
+num_conflicts, students_with_conflicts = Schedule.count_student_conflicts()
+print(f"Number of student conflicts: {num_conflicts}")
+print("Students with conflicts:", students_with_conflicts)
+
+
 num_conflicts = Schedule.count_faculty_conflicts()
 print(f"Number of faculty conflicts: {num_conflicts}")
 
