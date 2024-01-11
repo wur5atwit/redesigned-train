@@ -11,11 +11,7 @@ class Schedule:
 
         # Filtering
         df_students_filtered = df_students[
-        (df_students['CREDIT'] != 0) #& 
-        #(~df_students['title'].str.lower().str.startswith('studio')) &
-        #(df_students['title'].str.upper() != 'DESIGN AS RESEARCH') &
-        #(df_students['title'].str.upper() != 'GLOBAL RESEARCH  STUDIO') &
-        #(df_students['title'].str.upper() != 'METHODS OF HIST, THRY & CRIT')
+        (df_students['CREDIT'] != 0) 
         ]       
 
 
@@ -31,7 +27,9 @@ class Schedule:
         combined_courses_filtered = combined_courses_filtered[['CRN2', 'Instructor', 'title']]
 
         # Exclude certain CRN2s
-        excluded_crn2 = {'11642-11643-11645', '11678', '11689-12782', '11692-11694-11696', '11698', '11702-11705-11708', '11805', '11810-11811', '11812', '11814', '11821', '11823', '11829', '11830', '11834', '11835', '11838', '11840', '11843', '11847', '11910-11918', '11966-11967', '11986-11988', '12045-12051', '12052', '12070', '12071', '12086', '12160', '12255', '12256', '12258', '12259', '12260', '12261', '12279', '12311', '12313', '12336', '12359', '12361-12362', '12365', '12379', '12380', '12381', '12382-12389', '12384-12388', '12385-12387', '12390', '12393-12397-12410-12414', '12398-12409', '12423', '12426', '12442', '12443-12444', '12449', '12489', '12490', '12491', '12492', '12499', '12516', '12551', '12573', '12583-12589', '12585-12591', '12595', '12597-12601', '12599-12603-12605', '12623-12625', '12633-12635', '12641', '12648', '12650', '12655', '12667', '12669-12671', '12707', '12728', '12730', '12731', '12733', '12735', '12755', '12786', '12792', '12800', '12810', '12815', '12816', '12818', '12821', '12825', '12829', '12832', '12837', '12841', '12859', '12865', '12875', '12876', '12877', '12878', '12879'}  # Add all excluded CRN2s here
+        # Add all excluded CRN2s here
+        excluded_crn2 = {"'11642-11643-11645', '11678', '11689-12782', '11692-11694-11696', '11698', '11702-11705-11708', '11805', '11810-11811', '11812', '11814', '11821', '11823', '11829', '11830', '11834', '11835', '11838', '11840', '11843', '11847', '11910-11918', '11966-11967', '11986-11988', '12045-12051', '12052', '12070', '12071', '12086', '12160', '12255', '12256', '12258', '12259', '12260', '12261', '12279', '12311', '12313', '12336', '12359', '12361-12362', '12365', '12379', '12380', '12381', '12382-12389', '12384-12388', '12385-12387', '12390', '12393-12397-12410-12414', '12398-12409', '12423', '12426', '12442', '12443-12444', '12449', '12489', '12490', '12491', '12492', '12499', '12516', '12551', '12573', '12583-12589', '12585-12591', '12595', '12597-12601', '12599-12603-12605', '12623-12625', '12633-12635', '12641', '12648', '12650', '12655', '12667', '12669-12671', '12707', '12728', '12730', '12731', '12733', '12735', '12755', '12786', '12792', '12800', '12810', '12815', '12816', '12818', '12821', '12825', '12829', '12832', '12837', '12841', '12859', '12865', '12875', '12876', '12877', '12878', '12879'"}  
+        
         combined_courses_filtered = combined_courses_filtered[~combined_courses_filtered['CRN2'].isin(excluded_crn2)]
 
         # Count the number of students for each CRN
@@ -55,6 +53,40 @@ class Schedule:
 
         return final_data.head()
 
+
+
+    
+    @staticmethod
+    def count_faculty_conflicts():
+        path_to_possible_schedule = r"C:\Users\richa\Downloads\COOP\Possible_Schedule.xlsx"
+
+        df_possible_schedule = pd.read_excel(path_to_possible_schedule)
+
+        def has_time_overlap(schedule):
+            for day in range(1, 8):  # Assuming 1-7 represents days of the week
+                day_schedule = schedule[schedule['EXAM DAY'] == day]
+                time_slots = day_schedule['NewTime'].tolist()
+
+                # Debug print
+                #if len(day_schedule) > 0:
+                    #print(f"Day: {day}, Instructor: {schedule.iloc[0]['INSTRUCTOR']}, Time slots: {time_slots}")
+
+                if len(time_slots) != len(set(time_slots)):
+                    return True  # Overlap detected
+            return False
+
+        faculty_conflicts = 0
+
+        for instructor in df_possible_schedule['INSTRUCTOR'].unique():
+            instructor_schedule = df_possible_schedule[df_possible_schedule['INSTRUCTOR'] == instructor]
+            if has_time_overlap(instructor_schedule):
+                faculty_conflicts += 1
+
+        return faculty_conflicts
+    
+num_conflicts = Schedule.count_faculty_conflicts()
+print(f"Number of faculty conflicts: {num_conflicts}")
+
+    
 # To call the function and see the output
 output = Schedule.function1()
-print(output)
