@@ -120,39 +120,49 @@ class Schedule:
     
     @staticmethod
     def count_room_conflicts():
-        path_to_room_capacities = r"C:\Users\richa\Downloads\COOP\ClassroomsF23.xlsx"
+        path_to_room_capacities = r"C:\Users\richa\Downloads\COOP\RoomCapacities.xlsx"
         path_to_possible_schedule = r"C:\Users\richa\Downloads\COOP\Possible_Schedule.xlsx"
 
         # Load the datasets
         df_room_capacities = pd.read_excel(path_to_room_capacities)
         df_possible_schedule = pd.read_excel(path_to_possible_schedule)
 
-        # Merge the schedule with room capacities
+
+        # Merge the possible schedule with room capacities
         df_merged = pd.merge(df_possible_schedule, df_room_capacities, left_on='Final Exam Room', right_on='ROOM NAME', how='left')
 
-        # Identify conflicts
+        # Identify conflicts where the number of students exceeds room capacity
         conflict_rooms = df_merged[df_merged['Count'] > df_merged['CAPACITY']]
-        conflict_details = conflict_rooms[['Final Exam Room', 'Count', 'CAPACITY']]
 
-        # Count conflicts
+        # Count the number of conflicts
         num_conflicts = conflict_rooms.shape[0]
 
-        return num_conflicts, conflict_details
+        # Extract details of the conflicts
+        conflict_details = conflict_rooms[['Final Exam Room', 'Count', 'CAPACITY']]
 
-# To call the function and get the number of room conflicts and the details of conflicts
-num_conflicts, conflict_details = Schedule.count_room_conflicts()
-print(f"Number of room too small conflicts: {num_conflicts}")
-print("Details of room conflicts:\n", conflict_details)
+        return num_conflicts, conflict_details
+    
+#To call the function and see the output
+output = Schedule.function1()
+
+#count faculty
+num_conflicts = Schedule.count_faculty_conflicts()
+print(f"Number of faculty conflicts: {num_conflicts}")
 
 # To call the function and get the number of student conflicts and the list of students with conflicts
 num_conflicts, students_with_conflicts = Schedule.count_student_conflicts()
 print(f"Number of student conflicts: {num_conflicts}")
 print("Students with conflicts:", students_with_conflicts)
 
+# To call the function and get the number of room conflicts and the details of conflicts
+num_conflicts, conflict_details = Schedule.count_room_conflicts()
+print(f"Number of room too small conflicts: {num_conflicts}")
+print("Details of room conflicts:\n", conflict_details)
 
-num_conflicts = Schedule.count_faculty_conflicts()
-print(f"Number of faculty conflicts: {num_conflicts}")
+
+
+
+
 
     
-# To call the function and see the output
-output = Schedule.function1()
+
