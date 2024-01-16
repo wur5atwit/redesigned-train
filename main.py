@@ -7,13 +7,12 @@ class Schedule:
         path_to_f23_courses = r"C:\Users\richa\Downloads\COOP\F23_Courses_2.xlsx"
 
         df_students = pd.read_excel(path_to_f23_students)
-        df_courses = pd.read_excel(path_to_f23_courses)
+        
 
         # Filtering
         df_students_filtered = df_students[
         (df_students['CREDIT'] != 0) 
         ]       
-
 
         # Group by instructor and title, and combine CRNs
         combined_courses_filtered = df_students_filtered.groupby(['course_instructor', 'title'])['CRN'].apply(
@@ -28,32 +27,16 @@ class Schedule:
 
         # Exclude certain CRN2s
         # Add all excluded CRN2s here
-        excluded_crn2 = {"'11642-11643-11645', '11678', '11689-12782', '11692-11694-11696', '11698', '11702-11705-11708', '11805', '11810-11811', '11812', '11814', '11821', '11823', '11829', '11830', '11834', '11835', '11838', '11840', '11843', '11847', '11910-11918', '11966-11967', '11986-11988', '12045-12051', '12052', '12070', '12071', '12086', '12160', '12255', '12256', '12258', '12259', '12260', '12261', '12279', '12311', '12313', '12336', '12359', '12361-12362', '12365', '12379', '12380', '12381', '12382-12389', '12384-12388', '12385-12387', '12390', '12393-12397-12410-12414', '12398-12409', '12423', '12426', '12442', '12443-12444', '12449', '12489', '12490', '12491', '12492', '12499', '12516', '12551', '12573', '12583-12589', '12585-12591', '12595', '12597-12601', '12599-12603-12605', '12623-12625', '12633-12635', '12641', '12648', '12650', '12655', '12667', '12669-12671', '12707', '12728', '12730', '12731', '12733', '12735', '12755', '12786', '12792', '12800', '12810', '12815', '12816', '12818', '12821', '12825', '12829', '12832', '12837', '12841', '12859', '12865', '12875', '12876', '12877', '12878', '12879'"}  
+        excluded_crn2 = {""}  
         
         combined_courses_filtered = combined_courses_filtered[~combined_courses_filtered['CRN2'].isin(excluded_crn2)]
 
-        # Count the number of students for each CRN
-        df_students['CRN_str'] = df_students['CRN'].astype(str)
-        student_counts = df_students['CRN_str'].value_counts().reset_index()
-        student_counts.columns = ['CRN', 'Student Count']
-
-        # Merge the student count with the combined course details
-        # Split CRN2 and explode to match with individual CRNs
-        combined_courses_filtered['CRN2_split'] = combined_courses_filtered['CRN2'].str.split('-')
-        exploded_combined_courses = combined_courses_filtered.explode('CRN2_split')
-
-        # Merge with student counts
-        merged_data = pd.merge(exploded_combined_courses, student_counts, left_on='CRN2_split', right_on='CRN', how='left')
-
-        # Group by CRN2 and sum the student counts
-        final_data = merged_data.groupby(['CRN2', 'Instructor', 'title'])['Student Count'].sum().reset_index()
-
         # Saving to Excel
-        final_data.to_excel("combined_courses_filtered_with_counts.xlsx", index=False)
+        combined_courses_filtered.to_excel("combined_courses_CRN2.xlsx", index=False)
 
-        return final_data.head()
+        return combined_courses_filtered.head()
 
-
+        
 
     
     @staticmethod
@@ -89,15 +72,24 @@ class Schedule:
         path_to_f23_students = r"C:\Users\richa\Downloads\COOP\F23_Students.xlsx"
         path_to_possible_schedule = r"C:\Users\richa\Downloads\COOP\Possible_Schedule.xlsx"
 
+        path_to_f23_students = r"C:\Users\richa\Downloads\COOP\F23_Students.xlsx"
+        path_to_possible_schedule = r"C:\Users\richa\Downloads\COOP\Possible_Schedule.xlsx"
+
+        # Load the datasets
         df_students = pd.read_excel(path_to_f23_students)
         df_possible_schedule = pd.read_excel(path_to_possible_schedule)
 
+        # Convert CRN to string and filter out 0 credit classes
         df_students['CRN'] = df_students['CRN'].astype(str)
+        df_students_filtered = df_students[df_students['CREDIT'] != 0]
+
+        # Prepare the possible schedule data
         df_possible_schedule['CRN'] = df_possible_schedule['CRN2'].str.split('-')
         df_possible_schedule_exploded = df_possible_schedule.explode('CRN')
         df_possible_schedule_exploded['CRN'] = df_possible_schedule_exploded['CRN'].astype(str)
 
-        df_merged = pd.merge(df_students, df_possible_schedule_exploded, on='CRN', how='left')
+        # Merge the filtered student data with the possible schedule
+        df_merged = pd.merge(df_students_filtered, df_possible_schedule_exploded, on='CRN', how='left')
 
         def has_time_overlap(schedule):
             schedule_grouped = schedule.groupby('EXAM DAY')
@@ -110,6 +102,7 @@ class Schedule:
         student_conflicts = 0
         students_with_conflicts = []
 
+        # Check for conflicts
         for student in df_merged['STUDENT NAME'].unique():
             student_schedule = df_merged[df_merged['STUDENT NAME'] == student]
             if has_time_overlap(student_schedule):
@@ -117,6 +110,8 @@ class Schedule:
                 students_with_conflicts.append(student)
 
         return student_conflicts, students_with_conflicts
+    
+    
     
     @staticmethod
     def count_room_conflicts():
@@ -142,22 +137,82 @@ class Schedule:
 
         return num_conflicts, conflict_details
     
+    @staticmethod
+    def count_students_with_multiple_exams():
+        path_to_f23_students = r"C:\Users\richa\Downloads\COOP\F23_Students.xlsx"
+        path_to_possible_schedule = r"C:\Users\richa\Downloads\COOP\Possible_Schedule.xlsx"
+
+        # Load the datasets
+        df_f23_students = pd.read_excel(path_to_f23_students)
+        df_possible_schedule = pd.read_excel(path_to_possible_schedule)
+
+        # Ensure 'CRN' in 'F23 Students' is a string for consistent merging
+        df_f23_students['CRN'] = df_f23_students['CRN'].astype(str)
+
+        # Split 'CRN2' in 'Possible Schedule', convert to string and explode it for matching
+        df_possible_schedule['CRN2'] = df_possible_schedule['CRN2'].astype(str).str.split('-')
+        df_possible_schedule_exploded = df_possible_schedule.explode('CRN2')
+            # Merge datasets on 'CRN'
+        df_merged = pd.merge(df_f23_students, df_possible_schedule_exploded, left_on='CRN', right_on='CRN2')
+
+        # Group by student name and exam day, then count the number of exams
+        exam_count_per_day = df_merged.groupby(['STUDENT NAME', 'EXAM DAY']).size().reset_index(name='Exam Count')
+
+        # Identify students with more than three exams in a single day
+        students_with_multiple_exams = exam_count_per_day[exam_count_per_day['Exam Count'] > 3]
+
+        # Count the number of such students
+        num_students = students_with_multiple_exams['STUDENT NAME'].nunique()
+
+        return num_students, students_with_multiple_exams
+    
+    @staticmethod
+    def count_double_booked_rooms():
+        path_to_possible_schedule = r"C:\Users\richa\Downloads\COOP\Possible_Schedule.xlsx"
+
+        # Load the dataset
+        df_possible_schedule = pd.read_excel(path_to_possible_schedule)
+
+        # Group by room, exam day, and exam time
+        room_booking_counts = df_possible_schedule.groupby(['Final Exam Room', 'EXAM DAY', 'NewTime']).size().reset_index(name='Booking Count')
+
+        # Identify double bookings where a room is booked more than once at the same time
+        double_booked_rooms = room_booking_counts[room_booking_counts['Booking Count'] > 1]
+
+        # Count the number of double booked instances
+        num_double_bookings = double_booked_rooms.shape[0]
+
+        return num_double_bookings, double_booked_rooms
+    
+    
 #To call the function and see the output
 output = Schedule.function1()
 
 #count faculty
 num_conflicts = Schedule.count_faculty_conflicts()
+
 print(f"Number of faculty conflicts: {num_conflicts}")
 
 # To call the function and get the number of student conflicts and the list of students with conflicts
 num_conflicts, students_with_conflicts = Schedule.count_student_conflicts()
 print(f"Number of student conflicts: {num_conflicts}")
-print("Students with conflicts:", students_with_conflicts)
+if num_conflicts > 0:
+    print("Students with conflicts:", students_with_conflicts)
+
+
+num_students, students_with_multiple_exams = Schedule.count_students_with_multiple_exams()
+print(f"Number of students with more than three exams in a single day: {num_students}")
+if num_students > 0:
+    print("Details of students with multiple exams:\n", students_with_multiple_exams)
+
+
 
 # To call the function and get the number of room conflicts and the details of conflicts
 num_conflicts, conflict_details = Schedule.count_room_conflicts()
 print(f"Number of room too small conflicts: {num_conflicts}")
-print("Details of room conflicts:\n", conflict_details)
+if num_conflicts > 0:
+    print("Details of room conflicts:\n", conflict_details)
+
 
 
 
