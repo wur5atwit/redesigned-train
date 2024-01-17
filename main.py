@@ -4,11 +4,9 @@ class Schedule:
     @staticmethod
     def function1():
         path_to_f23_students = r"C:\Users\richa\Downloads\COOP\F23_Students.xlsx"
-        path_to_f23_courses = r"C:\Users\richa\Downloads\COOP\F23_Courses_2.xlsx"
-
+        
         df_students = pd.read_excel(path_to_f23_students)
         
-
         # Filtering
         df_students_filtered = df_students[
         (df_students['CREDIT'] != 0) 
@@ -214,7 +212,55 @@ if num_conflicts > 0:
     print("Details of room conflicts:\n", conflict_details)
 
 
+class ScheduleOptimizer:
+    def __init__(self, possible_schedule_path, room_capacity_path):
+        self.possible_schedule = pd.read_excel(possible_schedule_path)
+        self.room_capacities = pd.read_excel(room_capacity_path)
 
+    def optimize_room_assignments(self):
+        # Add a column for original room assignments
+        self.possible_schedule['Original Room'] = self.possible_schedule['Final Exam Room']
+
+        # Initialize DataFrame to track room availability for each day
+        available_rooms = self.room_capacities.copy()
+        available_rooms['Available Days'] = available_rooms.apply(lambda x: list(range(1, 8)), axis=1)  # Assuming 7 days for exams
+
+        # Iterate through each day and NewTime slot
+        for day in self.possible_schedule['EXAM DAY'].unique():
+            for new_time in self.possible_schedule['NewTime'].unique():
+                exams_this_slot = self.possible_schedule[(self.possible_schedule['EXAM DAY'] == day) & (self.possible_schedule['NewTime'] == new_time)]
+                exams_this_slot = exams_this_slot.sort_values(by='Count', ascending=False)
+                
+                for index, exam in exams_this_slot.iterrows():
+                    current_room = exam['Final Exam Room']
+                    current_capacity = available_rooms.loc[available_rooms['ROOM NAME'] == current_room, 'CAPACITY'].values[0]
+
+                    # Filter for bigger available rooms
+                    bigger_available_rooms = available_rooms[(available_rooms['CAPACITY'] > current_capacity) & 
+                                                             (available_rooms['Available Days'].apply(lambda x: day in x))]
+                    if not bigger_available_rooms.empty:
+                        new_room = bigger_available_rooms.iloc[0]
+                        self.possible_schedule.at[index, 'Final Exam Room'] = new_room['ROOM NAME']
+                        # Update the available days for the new room
+                        available_rooms.loc[available_rooms['ROOM NAME'] == new_room['ROOM NAME'], 'Available Days'] = available_rooms.loc[available_rooms['ROOM NAME'] == new_room['ROOM NAME'], 'Available Days'].apply(lambda x: [d for d in x if d != day])
+
+                    # Update the available days for the current room
+                    available_rooms.loc[available_rooms['ROOM NAME'] == current_room, 'Available Days'] = available_rooms.loc[available_rooms['ROOM NAME'] == current_room, 'Available Days'].apply(lambda x: [d for d in x if d != day])
+
+        # Format unused rooms list
+        unused_rooms_formatted = available_rooms.explode('Available Days')
+        unused_rooms_formatted = unused_rooms_formatted.dropna(subset=['Available Days']).reset_index(drop=True)
+
+        # Save the updated exam schedule and formatted unused rooms to Excel
+        with pd.ExcelWriter(r"C:\Users\richa\Downloads\COOP\optimized_schedule.xlsx") as writer:
+            self.possible_schedule.to_excel(writer, sheet_name='Optimized Schedule', index=False)
+            unused_rooms_formatted.to_excel(writer, sheet_name='Formatted Unused Rooms', index=False)
+
+        return self.possible_schedule
+
+# Usage
+optimizer = ScheduleOptimizer(r"C:\Users\richa\Downloads\COOP\Possible_Schedule.xlsx", r"C:\Users\richa\Downloads\COOP\RoomCapacities.xlsx")
+optimized_schedule = optimizer.optimize_room_assignments()
 
 
 
