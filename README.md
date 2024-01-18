@@ -4,8 +4,7 @@ Exam Schedule: "CRN2", "INSTRUCTOR", "NewTime", "EXAM DAY", "Final Exam Room"
 Room Capacities: "ROOM NAME", "CAPACITY"
 --NAMES TO BE EXACTLY THE SAME--
 
-**Function 1 designed to process and combine data from an Excel spreadsheet: 'Students Excel File'. Student file needs "title", "course_instructor", and "CRN" in the columns.**
-
+**Function 1 needs Student file.**
 **Function 2 needs Student, Exam Schedule, and Room capacities file.**
 **Function 3 needs Exam Schedule, and Room capacities file.**
 
@@ -19,6 +18,8 @@ pip install -r requirements.txt
 Run the main.py file and input the files that are asked.
 
 
+## Infomation about functions
+Function 1 designed to process and combine data from an Excel spreadsheet for CRN2.
 
 Count Faculty Conflict Function Designed to identify and count scheduling conflicts for faculty members based on exam schedules.
 
