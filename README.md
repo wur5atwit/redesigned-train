@@ -1,7 +1,7 @@
 INPUTS NEEDED FOR:
-Student File: "STUDENT NAME", "title", "course_instructor", "CRN", "CREDIT"
-Exam Schedule: "CRN2", "INSTRUCTOR", "NewTime", "EXAM DAY", "Final Exam Room"
-Room Capacities: "ROOM NAME", "CAPACITY"
+Student File: "STUDENT NAME", "title", "course_instructor", "CRN", "CREDIT"_
+Exam Schedule: "CRN2", "INSTRUCTOR", "NewTime", "EXAM DAY", "Final Exam Room"_
+Room Capacities: "ROOM NAME", "CAPACITY"_
 --NAMES TO BE EXACTLY THE SAME--
 
 **Function 1 needs Student file.**
