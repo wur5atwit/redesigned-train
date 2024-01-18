@@ -1,9 +1,8 @@
 import pandas as pd
 class function2:
     
-    def count_faculty_conflicts():
-        path_to_possible_schedule = r"C:\Users\richa\Downloads\COOP\Possible_Schedule.xlsx"
-
+    def count_faculty_conflicts(path_to_possible_schedule):
+        
         df_possible_schedule = pd.read_excel(path_to_possible_schedule)
 
         def has_time_overlap(schedule):
@@ -29,12 +28,8 @@ class function2:
         return faculty_conflicts
     
     @staticmethod
-    def count_student_conflicts():
-        path_to_f23_students = r"C:\Users\richa\Downloads\COOP\F23_Students.xlsx"
-        path_to_possible_schedule = r"C:\Users\richa\Downloads\COOP\Possible_Schedule.xlsx"
-
-        path_to_f23_students = r"C:\Users\richa\Downloads\COOP\F23_Students.xlsx"
-        path_to_possible_schedule = r"C:\Users\richa\Downloads\COOP\Possible_Schedule.xlsx"
+    def count_student_conflicts(path_to_f23_students, path_to_possible_schedule):
+        
 
         # Load the datasets
         df_students = pd.read_excel(path_to_f23_students)
@@ -75,9 +70,8 @@ class function2:
     
     
     @staticmethod
-    def count_room_conflicts():
-        path_to_room_capacities = r"C:\Users\richa\Downloads\COOP\RoomCapacities.xlsx"
-        path_to_possible_schedule = r"C:\Users\richa\Downloads\COOP\Possible_Schedule.xlsx"
+    def count_room_conflicts(path_to_room_capacities, path_to_possible_schedule):
+        
 
         # Load the datasets
         df_room_capacities = pd.read_excel(path_to_room_capacities)
@@ -99,15 +93,14 @@ class function2:
         return num_conflicts, conflict_details
     
     @staticmethod
-    def count_students_with_multiple_exams():
-        path_to_f23_students = r"C:\Users\richa\Downloads\COOP\F23_Students.xlsx"
-        path_to_possible_schedule = r"C:\Users\richa\Downloads\COOP\Possible_Schedule.xlsx"
+    def count_students_with_multiple_exams(path_to_f23_students, path_to_possible_schedule):
+       
 
         # Load the datasets
         df_f23_students = pd.read_excel(path_to_f23_students)
         df_possible_schedule = pd.read_excel(path_to_possible_schedule)
 
-        # Ensure 'CRN' in 'F23 Students' is a string for consistent merging
+    
         df_f23_students['CRN'] = df_f23_students['CRN'].astype(str)
 
         # Split 'CRN2' in 'Possible Schedule', convert to string and explode it for matching
@@ -128,8 +121,8 @@ class function2:
         return num_students, students_with_multiple_exams
     
     @staticmethod
-    def count_double_booked_rooms():
-        path_to_possible_schedule = r"C:\Users\richa\Downloads\COOP\Possible_Schedule.xlsx"
+    def count_double_booked_rooms(path_to_possible_schedule):
+       
 
         # Load the dataset
         df_possible_schedule = pd.read_excel(path_to_possible_schedule)

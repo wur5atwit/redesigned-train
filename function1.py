@@ -1,8 +1,8 @@
 import pandas as pd
 class function1:
     
-    def crn2Sorter():
-        path_to_f23_students = r"C:\Users\richa\Downloads\COOP\F23_Students.xlsx"
+    def crn2Sorter(path_to_f23_students):
+        
         
         df_students = pd.read_excel(path_to_f23_students)
         

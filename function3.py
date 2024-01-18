@@ -2,9 +2,9 @@ import pandas as pd
 
 class function3:
     @staticmethod
-    def optimize_room_assignments():
-        possible_schedule = pd.read_excel(r"C:\Users\richa\Downloads\COOP\Possible_Schedule.xlsx")
-        room_capacities = pd.read_excel(r"C:\Users\richa\Downloads\COOP\RoomCapacities.xlsx")
+    def optimize_room_assignments(possible_schedule, room_capacities):
+        possible_schedule = pd.read_excel(possible_schedule)
+        room_capacities = pd.read_excel(room_capacities)
 
         # Add a column for original room assignments
         possible_schedule['Original Room'] = possible_schedule['Final Exam Room']
@@ -41,7 +41,7 @@ class function3:
 
         
         # Save the updated exam schedule and formatted unused rooms to Excel
-        with pd.ExcelWriter(r"C:\Users\richa\Downloads\COOP\optimized_schedule.xlsx") as writer:
+        with pd.ExcelWriter("optimized_schedule.xlsx") as writer:
             possible_schedule.to_excel(writer, sheet_name='Optimized Schedule', index=False)
             unused_rooms_formatted.to_excel(writer, sheet_name='Formatted Unused Rooms', index=False)
 
