@@ -20,3 +20,11 @@ Designed to identify and count the number of students who have more than three e
 
 Count Double Booked Room Function needs 'Exam Schedule'. File needs "Final Exam Room", "EXAM DAY", "NewTime" as inputs.
 Method is designed to detect and count instances of double booking in exam rooms. This occurs when an exam room is scheduled to be used by more than one exam at the same time on the same day.
+
+**HOW TO RUN**
+## Installation
+
+To install the required Python packages, run the following command:
+pip install -r requirements.txt
+
+Run the main.py file and input the files that are asked.
