@@ -1,5 +1,5 @@
 INPUTS NEEDED FOR:
-Student File: "STUDENT NAME", "title", "course_instructor", "CRN", "CREDIT<br />
+Student File: "STUDENT NAME", "title", "course_instructor", "CRN", "CREDIT"<br />
 Exam Schedule: "CRN2", "INSTRUCTOR", "NewTime", "EXAM DAY", "Final Exam Room"<br />
 Room Capacities: "ROOM NAME", "CAPACITY"<br />
 --NAMES TO BE EXACTLY THE SAME--
