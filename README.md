@@ -24,7 +24,7 @@ Method is designed to detect and count instances of double booking in exam rooms
 **HOW TO RUN**
 ## Installation
 
-To install the required Python packages, run the following command:
+To install the required Python packages, run the following command in the console:
 pip install -r requirements.txt
 
 Run the main.py file and input the files that are asked.
