@@ -21,6 +21,7 @@ Run the main.py file and input the files that are asked.
 ## Infomation about functions
 Function 1 designed to process and combine data from an Excel spreadsheet for CRN2.
 
+Function 2:
 Count Faculty Conflict Function Designed to identify and count scheduling conflicts for faculty members based on exam schedules.
 
 Count Student Conflict Function Designed to calculate and identify conflicts in student exam schedules. It checks for instances where a student is scheduled to take multiple exams at the same time.
@@ -30,4 +31,7 @@ Count Room Conflict Function  Designed to identify and quantify instances where 
 Count 3 in 1 Function  Designed to identify and count the number of students who have more than three exams scheduled on a single day. 
 
 Count Double Booked Room Function Method is designed to detect and count instances of double booking in exam rooms. This occurs when an exam room is scheduled to be used by more than one exam at the same time on the same day.
+
+Function 3:
+Maintain a list of available rooms for that day/time if there is a bigger available room swap rooms make the old room available
 
