@@ -127,38 +127,39 @@ for frame in (main_frame, function1_frame, function2_frame, function3_frame):
     frame.grid(row=0, column=0, sticky='news')
 
 # Main Frame widgets
-tk.Button(main_frame, text="Function 1", command=lambda: raise_frame(function1_frame), bg=button_color).pack(pady=10)
-tk.Button(main_frame, text="Function 2", command=lambda: raise_frame(function2_frame), bg=button_color).pack(pady=10)
-tk.Button(main_frame, text="Function 3", command=lambda: raise_frame(function3_frame), bg=button_color).pack(pady=10)
+tk.Button(main_frame, text="CRN Convert to CRN2", command=lambda: raise_frame(function1_frame), bg=button_color).pack(pady=10)
+tk.Button(main_frame, text="Schedule Conflicts Checker", command=lambda: raise_frame(function2_frame), bg=button_color).pack(pady=10)
+tk.Button(main_frame, text="Room Optimizer", command=lambda: raise_frame(function3_frame), bg=button_color).pack(pady=10)
+
 
 # Function 1 Frame widgets
-tk.Label(function1_frame, text="Function 1 requires the 'Students File'").pack()
+tk.Label(function1_frame, text="CRN Converter requires the 'Students File'").pack()
 file_listbox1 = Listbox(function1_frame, selectmode=EXTENDED, width=100, height=10)
 file_listbox1.pack(pady=20)
 tk.Button(function1_frame, text="Upload Students File", command=lambda: add_file('Students File', file_listbox1)).pack()
 tk.Button(function1_frame, text="Delete Selected File", command=lambda: delete_file(file_listbox1)).pack()
-tk.Button(function1_frame, text="Run Function 1", command=lambda: run_function1(file_listbox1)).pack()
+tk.Button(function1_frame, text="Run CRN Converter", command=lambda: run_function1(file_listbox1)).pack()
 tk.Button(function1_frame, text="Back to Main Menu", command=lambda: raise_frame(main_frame)).pack()
 
 # Function 2 Frame widgets
-tk.Label(function2_frame, text="Function 2 requires the 'Students File', 'Possible Schedule File', and 'Room Capacities File'").pack()
+tk.Label(function2_frame, text="Schedule Conflicts Checker requires the 'Students File', 'Possible Schedule File', and 'Room Capacities File'").pack()
 file_listbox2 = Listbox(function2_frame, selectmode=EXTENDED, width=100, height=10)
 file_listbox2.pack(pady=20)
 tk.Button(function2_frame, text="Upload Students File", command=lambda: add_file('Students File', file_listbox2)).pack()
 tk.Button(function2_frame, text="Upload Schedule File", command=lambda: add_file('Possible Schedule File', file_listbox2)).pack()
 tk.Button(function2_frame, text="Upload Room Capacities File", command=lambda: add_file('Room Capacities File', file_listbox2)).pack()
 tk.Button(function2_frame, text="Delete Selected File", command=lambda: delete_file(file_listbox2)).pack()
-tk.Button(function2_frame, text="Run Function 2", command=lambda: run_function2(file_listbox2)).pack()
+tk.Button(function2_frame, text="Run Schedule Conflicts Checker", command=lambda: run_function2(file_listbox2)).pack()
 tk.Button(function2_frame, text="Back to Main Menu", command=lambda: raise_frame(main_frame)).pack()
 
 # Function 3 Frame widgets
-tk.Label(function3_frame, text="Function 3 requires the 'Possible Schedule File' and 'Room Capacities File'").pack()
+tk.Label(function3_frame, text="Room Optimizer requires the 'Possible Schedule File' and 'Room Capacities File'").pack()
 file_listbox3 = Listbox(function3_frame, selectmode=EXTENDED, width=100, height=10)
 file_listbox3.pack(pady=20)
 tk.Button(function3_frame, text="Upload Schedule File", command=lambda: add_file('Possible Schedule File', file_listbox3)).pack()
 tk.Button(function3_frame, text="Upload Room Capacities File", command=lambda: add_file('Room Capacities File', file_listbox3)).pack()
 tk.Button(function3_frame, text="Delete Selected File", command=lambda: delete_file(file_listbox3)).pack()
-tk.Button(function3_frame, text="Run Function 3", command=lambda: run_function3(file_listbox3)).pack()
+tk.Button(function3_frame, text="Run Room Optimizer", command=lambda: run_function3(file_listbox3)).pack()
 tk.Button(function3_frame, text="Back to Main Menu", command=lambda: raise_frame(main_frame)).pack()
 
 raise_frame(main_frame)
