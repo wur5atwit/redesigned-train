@@ -5,21 +5,21 @@ from tkinter import filedialog, messagebox, Listbox, EXTENDED, font as tkFont
 from function1 import function1
 from function2 import function2
 from function3 import function3
+from function4 import function4
 
 def raise_frame(frame):
     frame.tkraise()
 
 def run_function1(file_listbox):
-    # Retrieve the 'Students File' path and process it using function1
     students_file_path = files.get("Students File")
     if students_file_path:
         try:
             output = function1.crn2Sorter(students_file_path)  
             messagebox.showinfo("Result", "File Created: 'combined_courses_CRN2.xlsx' has been created.")
         except Exception as e:
-            messagebox.showerror("Error", f"An error occurred in Function 1: {e}")
+            messagebox.showerror("Error", f"An error occurred: {e}")
     else:
-        messagebox.showwarning("Missing File", "Please upload the 'Students File' for Function 1.")
+        messagebox.showwarning("Missing File", "Please upload the 'Students File' for CRN Convert to CRN2.")
 
 def format_dataframe(df):
     return df.to_string(index=False) if not df.empty else "No Data"
@@ -53,9 +53,9 @@ def run_function2(file_listbox):
             
             messagebox.showinfo("Results", results_summary)
         except Exception as e:
-            messagebox.showerror("Error", f"An error occurred in Function 2: {e}")
+            messagebox.showerror("Error", f"An error occurred: {e}")
     else:
-        messagebox.showwarning("Missing Files", "Please upload all required files for Function 2.")
+        messagebox.showwarning("Missing Files", "Please upload all required files for Schedule Conflicts Checker.")
 
 
 
@@ -69,14 +69,27 @@ def run_function3(file_listbox):
             optimized_schedule = function3.optimize_room_assignments(possible_schedule_file, room_capacities_file)
             messagebox.showinfo("File Created", "The optimized schedule file has been created.")
         except Exception as e:
-            messagebox.showerror("Error", f"An error occurred in Function 3: {e}")
+            messagebox.showerror("Error", f"An error occurred: {e}")
     else:
-        messagebox.showwarning("Missing Files", "Please upload the required files for Function 3.")
+        messagebox.showwarning("Missing Files", "Please upload the required files for Room Optimizer.")
+
+
+def run_function4(file_listbox):
+    combined_crn2_file_path = files.get("Combined CRN2 File")
+    if combined_crn2_file_path:
+        try:
+            output = function4.crn2Splitter(combined_crn2_file_path)  
+            messagebox.showinfo("Result", "File Created: 'Split_CRNs_Schedule.xlsx' has been created.")
+        except Exception as e:
+            messagebox.showerror("Error", f"An error occurred: {e}")
+    else:
+        messagebox.showwarning("Missing File", "Please upload the 'Combined CRN2 File' for CRN2 Separation.")
 
 def run_schedule():
     run_function1()
     run_function2()
     run_function3()
+    run_function4()
 
 
 def add_file(file_label, file_listbox):
@@ -122,14 +135,16 @@ main_frame = tk.Frame(root, bg=bg_color)
 function1_frame = tk.Frame(root, bg=bg_color)
 function2_frame = tk.Frame(root, bg=bg_color)
 function3_frame = tk.Frame(root, bg=bg_color)
+function4_frame = tk.Frame(root, bg=bg_color)
 
-for frame in (main_frame, function1_frame, function2_frame, function3_frame):
+for frame in (main_frame, function1_frame, function2_frame, function3_frame, function4_frame):
     frame.grid(row=0, column=0, sticky='news')
 
 # Main Frame widgets
 tk.Button(main_frame, text="CRN Convert to CRN2", command=lambda: raise_frame(function1_frame), bg=button_color).pack(pady=10)
 tk.Button(main_frame, text="Schedule Conflicts Checker", command=lambda: raise_frame(function2_frame), bg=button_color).pack(pady=10)
 tk.Button(main_frame, text="Room Optimizer", command=lambda: raise_frame(function3_frame), bg=button_color).pack(pady=10)
+tk.Button(main_frame, text="CRN2 Seperater", command=lambda: raise_frame(function4_frame), bg=button_color).pack(pady=10)
 
 
 # Function 1 Frame widgets
@@ -161,6 +176,15 @@ tk.Button(function3_frame, text="Upload Room Capacities File", command=lambda: a
 tk.Button(function3_frame, text="Delete Selected File", command=lambda: delete_file(file_listbox3)).pack()
 tk.Button(function3_frame, text="Run Room Optimizer", command=lambda: run_function3(file_listbox3)).pack()
 tk.Button(function3_frame, text="Back to Main Menu", command=lambda: raise_frame(main_frame)).pack()
+
+# Function 4 Frame widgets
+tk.Label(function4_frame, text="CRN2 Separator requires the 'Combined CRN2 File'").pack()
+file_listbox4 = Listbox(function4_frame, selectmode=EXTENDED, width=100, height=10)
+file_listbox4.pack(pady=20)
+tk.Button(function4_frame, text="Upload Combined CRN2 File", command=lambda: add_file('Combined CRN2 File', file_listbox4)).pack()
+tk.Button(function4_frame, text="Delete Selected File", command=lambda: delete_file(file_listbox4)).pack()
+tk.Button(function4_frame, text="Run CRN2 Separator", command=lambda: run_function4(file_listbox4)).pack()
+tk.Button(function4_frame, text="Back to Main Menu", command=lambda: raise_frame(main_frame)).pack()
 
 raise_frame(main_frame)
 root.mainloop()
