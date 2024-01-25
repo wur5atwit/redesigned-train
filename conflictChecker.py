@@ -1,7 +1,9 @@
 import pandas as pd
+import time
 class conflictChecker:
     
     def count_faculty_conflicts(path_to_possible_schedule):
+        start_time = time.time()
         df_possible_schedule = pd.read_excel(path_to_possible_schedule)
 
         def has_time_overlap(schedule):
@@ -14,12 +16,15 @@ class conflictChecker:
             instructor_schedule = df_possible_schedule[df_possible_schedule['INSTRUCTOR'] == instructor]
             if has_time_overlap(instructor_schedule):
                 faculty_conflicts += 1
+        end_time = time.time() 
+        execution_time = end_time - start_time 
+        print(f"Execution time for count_faculty_conflicts: {execution_time} seconds")
 
         return faculty_conflicts
     
     @staticmethod
     def count_student_conflicts(path_to_f23_students, path_to_possible_schedule):
-        
+        start_time = time.time()
         df_students = pd.read_excel(path_to_f23_students)
         df_possible_schedule = pd.read_excel(path_to_possible_schedule)
 
@@ -49,6 +54,10 @@ class conflictChecker:
                 student_conflicts += 1
                 students_with_conflicts.append(student)
 
+        end_time = time.time() 
+        execution_time = end_time - start_time 
+        print(f"Execution time for count_student_conflicts: {execution_time} seconds")
+
         return student_conflicts, students_with_conflicts
     
     
@@ -56,8 +65,8 @@ class conflictChecker:
     @staticmethod
     def count_room_conflicts(path_to_room_capacities, path_to_possible_schedule):
         
-
-        # Load the datasets
+        start_time = time.time()
+        
         df_room_capacities = pd.read_excel(path_to_room_capacities)
         df_possible_schedule = pd.read_excel(path_to_possible_schedule)
 
@@ -74,11 +83,15 @@ class conflictChecker:
         # Extract details of the conflicts
         conflict_details = conflict_rooms[['Final Exam Room', 'Count', 'CAPACITY']]
 
+        end_time = time.time() 
+        execution_time = end_time - start_time 
+        print(f"Execution time for count_room_conflicts: {execution_time} seconds")
+
         return num_conflicts, conflict_details
     
     @staticmethod
     def count_students_with_multiple_exams(path_to_f23_students, path_to_possible_schedule):
-        
+        start_time = time.time()
         df_f23_students = pd.read_excel(path_to_f23_students)
         df_possible_schedule = pd.read_excel(path_to_possible_schedule)
 
@@ -100,11 +113,15 @@ class conflictChecker:
         # Count the number of such students
         num_students = students_with_multiple_exams['STUDENT NAME'].nunique()
 
+        end_time = time.time() 
+        execution_time = end_time - start_time 
+        print(f"Execution time for count_students_with_multiple_exams: {execution_time} seconds")
+
         return num_students, students_with_multiple_exams
     
     @staticmethod
     def count_double_booked_rooms(path_to_possible_schedule):
-        
+        start_time = time.time()
         df_possible_schedule = pd.read_excel(path_to_possible_schedule)
 
         # Group by room and NewTime
@@ -116,4 +133,9 @@ class conflictChecker:
         # Count the number of double booked instances
         num_double_bookings = double_booked_rooms.shape[0]
 
+        end_time = time.time() 
+        execution_time = end_time - start_time 
+        print(f"Execution time for count_double_booked_rooms: {execution_time} seconds")
+
         return num_double_bookings, double_booked_rooms
+    

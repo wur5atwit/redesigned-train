@@ -1,8 +1,10 @@
 import pandas as pd
+import time
 
 class crn2Splitter:
     @staticmethod
     def crn2Splitter(path_to_combined_crn2, output_file_path):
+        start_time = time.time()
         df_combined_crn2 = pd.read_excel(path_to_combined_crn2)
 
         # Preparing a list to hold new rows
@@ -24,5 +26,10 @@ class crn2Splitter:
         df_split = df_split[['CRN', 'INSTRUCTOR', 'SUBJECT']]
 
         df_split.to_excel(output_file_path, index=False)
+
+
+        end_time = time.time() 
+        execution_time = end_time - start_time 
+        print(f"Execution time to split crn2's: {execution_time} seconds") 
 
         return df_split

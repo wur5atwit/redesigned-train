@@ -1,8 +1,9 @@
 import pandas as pd
+import time
 class crnConverter:
     
     def crnConverter(path_to_f23_students, output_file_path):
-        
+        start_time = time.time()
         
         df_students = pd.read_excel(path_to_f23_students)
         
@@ -27,7 +28,11 @@ class crnConverter:
         
         combined_courses_filtered = combined_courses_filtered[~combined_courses_filtered['CRN2'].isin(excluded_crn2)]
 
-        # Saving to Excel
+        
         combined_courses_filtered.to_excel(output_file_path, index=False)
+
+        end_time = time.time() 
+        execution_time = end_time - start_time 
+        print(f"Execution time convert crns to crn2s: {execution_time} seconds") 
 
         return combined_courses_filtered.head()

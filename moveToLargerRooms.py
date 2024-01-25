@@ -1,7 +1,8 @@
 import pandas as pd
+import time
 class moveToLargerRooms:
     def optimize_room_assignments(possible_schedule_path, room_capacities_path, output_file_path):
-        
+        start_time = time.time()
         exam_schedule = pd.read_excel(possible_schedule_path)
         room_capacities = pd.read_excel(room_capacities_path)
 
@@ -38,6 +39,10 @@ class moveToLargerRooms:
 
     
         final_sorted_schedule.to_excel(output_file_path, index=False)
+
+        end_time = time.time() 
+        execution_time = end_time - start_time 
+        print(f"Execution time moveToLargerRooms: {execution_time} seconds") 
 
         return final_sorted_schedule
 
