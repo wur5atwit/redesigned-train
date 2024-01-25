@@ -2,19 +2,19 @@ import tkinter as tk
 from tkinter import filedialog, messagebox, Listbox, EXTENDED, font as tkFont
 
 
-from function1 import function1
-from function2 import function2
-from function3 import function3
-from function4 import function4
+from crnConverter import crnConverter
+from conflictChecker import conflictChecker
+from moveToLargerRooms import moveToLargerRooms
+from crn2Splitter import crn2Splitter
 
 def raise_frame(frame):
     frame.tkraise()
 
-def run_function1(file_listbox):
+def run_crn2Sorter(file_listbox):
     students_file_path = files.get("Students File")
     if students_file_path:
         try:
-            output = function1.crn2Sorter(students_file_path)  
+            output = crnConverter.crnConverter(students_file_path)  
             messagebox.showinfo("Result", "File Created: 'combined_courses_CRN2.xlsx' has been created.")
         except Exception as e:
             messagebox.showerror("Error", f"An error occurred: {e}")
@@ -29,7 +29,7 @@ def format_list(lst):
 
 
 
-def run_function2(file_listbox):
+def run_conflictChecker(file_listbox):
     if "Possible Schedule File" in files and "Students File" in files and "Room Capacities File" in files:
         try:
             possible_schedule_file = files["Possible Schedule File"]
@@ -37,11 +37,11 @@ def run_function2(file_listbox):
             room_capacities_file = files["Room Capacities File"]
 
             # Call methods from function2
-            faculty_conflicts = function2.count_faculty_conflicts(possible_schedule_file)
-            student_conflicts, students_with_conflicts = function2.count_student_conflicts(students_file_path, possible_schedule_file)
-            room_conflicts, conflict_details = function2.count_room_conflicts(room_capacities_file, possible_schedule_file)
-            students_with_multiple_exams_count, students_with_multiple_exams_details = function2.count_students_with_multiple_exams(students_file_path, possible_schedule_file)
-            double_booked_rooms_count, double_booked_rooms_details = function2.count_double_booked_rooms(possible_schedule_file)
+            faculty_conflicts = conflictChecker.count_faculty_conflicts(possible_schedule_file)
+            student_conflicts, students_with_conflicts = conflictChecker.count_student_conflicts(students_file_path, possible_schedule_file)
+            room_conflicts, conflict_details = conflictChecker.count_room_conflicts(room_capacities_file, possible_schedule_file)
+            students_with_multiple_exams_count, students_with_multiple_exams_details = conflictChecker.count_students_with_multiple_exams(students_file_path, possible_schedule_file)
+            double_booked_rooms_count, double_booked_rooms_details = conflictChecker.count_double_booked_rooms(possible_schedule_file)
 
             # Formatting the results for display
             results_summary = (f"Faculty Conflicts: {faculty_conflicts}\n" +
@@ -60,13 +60,13 @@ def run_function2(file_listbox):
 
 
 
-def run_function3(file_listbox):
+def run_moveToLargerRooms(file_listbox):
     if "Possible Schedule File" in files and "Room Capacities File" in files:
         try:
             possible_schedule_file = files["Possible Schedule File"]
             room_capacities_file = files["Room Capacities File"]
 
-            optimized_schedule = function3.optimize_room_assignments(possible_schedule_file, room_capacities_file)
+            optimized_schedule = moveToLargerRooms.optimize_room_assignments(possible_schedule_file, room_capacities_file)
             messagebox.showinfo("File Created", "The optimized schedule file has been created.")
         except Exception as e:
             messagebox.showerror("Error", f"An error occurred: {e}")
@@ -74,11 +74,11 @@ def run_function3(file_listbox):
         messagebox.showwarning("Missing Files", "Please upload the required files for Room Optimizer.")
 
 
-def run_function4(file_listbox):
+def run_crn2Splitter(file_listbox):
     combined_crn2_file_path = files.get("Combined CRN2 File")
     if combined_crn2_file_path:
         try:
-            output = function4.crn2Splitter(combined_crn2_file_path)  
+            output = crn2Splitter.crn2Splitter(combined_crn2_file_path)  
             messagebox.showinfo("Result", "File Created: 'Split_CRNs_Schedule.xlsx' has been created.")
         except Exception as e:
             messagebox.showerror("Error", f"An error occurred: {e}")
@@ -86,10 +86,10 @@ def run_function4(file_listbox):
         messagebox.showwarning("Missing File", "Please upload the 'Combined CRN2 File' for CRN2 Separation.")
 
 def run_schedule():
-    run_function1()
-    run_function2()
-    run_function3()
-    run_function4()
+    run_crn2Sorter()
+    run_conflictChecker()
+    run_moveToLargerRooms()
+    run_crn2Splitter()
 
 
 def add_file(file_label, file_listbox):
@@ -153,7 +153,7 @@ file_listbox1 = Listbox(function1_frame, selectmode=EXTENDED, width=100, height=
 file_listbox1.pack(pady=20)
 tk.Button(function1_frame, text="Upload Students File", command=lambda: add_file('Students File', file_listbox1)).pack()
 tk.Button(function1_frame, text="Delete Selected File", command=lambda: delete_file(file_listbox1)).pack()
-tk.Button(function1_frame, text="Run CRN Converter", command=lambda: run_function1(file_listbox1)).pack()
+tk.Button(function1_frame, text="Run CRN Converter", command=lambda: run_crn2Sorter(file_listbox1)).pack()
 tk.Button(function1_frame, text="Back to Main Menu", command=lambda: raise_frame(main_frame)).pack()
 
 # Function 2 Frame widgets
@@ -164,7 +164,7 @@ tk.Button(function2_frame, text="Upload Students File", command=lambda: add_file
 tk.Button(function2_frame, text="Upload Schedule File", command=lambda: add_file('Possible Schedule File', file_listbox2)).pack()
 tk.Button(function2_frame, text="Upload Room Capacities File", command=lambda: add_file('Room Capacities File', file_listbox2)).pack()
 tk.Button(function2_frame, text="Delete Selected File", command=lambda: delete_file(file_listbox2)).pack()
-tk.Button(function2_frame, text="Run Schedule Conflicts Checker", command=lambda: run_function2(file_listbox2)).pack()
+tk.Button(function2_frame, text="Run Schedule Conflicts Checker", command=lambda: run_conflictChecker(file_listbox2)).pack()
 tk.Button(function2_frame, text="Back to Main Menu", command=lambda: raise_frame(main_frame)).pack()
 
 # Function 3 Frame widgets
@@ -174,7 +174,7 @@ file_listbox3.pack(pady=20)
 tk.Button(function3_frame, text="Upload Schedule File", command=lambda: add_file('Possible Schedule File', file_listbox3)).pack()
 tk.Button(function3_frame, text="Upload Room Capacities File", command=lambda: add_file('Room Capacities File', file_listbox3)).pack()
 tk.Button(function3_frame, text="Delete Selected File", command=lambda: delete_file(file_listbox3)).pack()
-tk.Button(function3_frame, text="Run Room Optimizer", command=lambda: run_function3(file_listbox3)).pack()
+tk.Button(function3_frame, text="Run Room Optimizer", command=lambda: run_moveToLargerRooms(file_listbox3)).pack()
 tk.Button(function3_frame, text="Back to Main Menu", command=lambda: raise_frame(main_frame)).pack()
 
 # Function 4 Frame widgets
@@ -183,7 +183,7 @@ file_listbox4 = Listbox(function4_frame, selectmode=EXTENDED, width=100, height=
 file_listbox4.pack(pady=20)
 tk.Button(function4_frame, text="Upload Combined CRN2 File", command=lambda: add_file('Combined CRN2 File', file_listbox4)).pack()
 tk.Button(function4_frame, text="Delete Selected File", command=lambda: delete_file(file_listbox4)).pack()
-tk.Button(function4_frame, text="Run CRN2 Separator", command=lambda: run_function4(file_listbox4)).pack()
+tk.Button(function4_frame, text="Run CRN2 Separator", command=lambda: run_crn2Splitter(file_listbox4)).pack()
 tk.Button(function4_frame, text="Back to Main Menu", command=lambda: raise_frame(main_frame)).pack()
 
 raise_frame(main_frame)

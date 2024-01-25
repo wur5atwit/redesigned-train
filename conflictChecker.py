@@ -1,5 +1,5 @@
 import pandas as pd
-class function2:
+class conflictChecker:
     
     def count_faculty_conflicts(path_to_possible_schedule):
         df_possible_schedule = pd.read_excel(path_to_possible_schedule)

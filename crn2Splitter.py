@@ -1,6 +1,6 @@
 import pandas as pd
 
-class function4:
+class crn2Splitter:
     @staticmethod
     def crn2Splitter(path_to_combined_crn2):
         df_combined_crn2 = pd.read_excel(path_to_combined_crn2)

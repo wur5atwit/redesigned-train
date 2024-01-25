@@ -1,5 +1,5 @@
 import pandas as pd
-class function3:
+class moveToLargerRooms:
     def optimize_room_assignments(possible_schedule_path, room_capacities_path):
         
         exam_schedule = pd.read_excel(possible_schedule_path)

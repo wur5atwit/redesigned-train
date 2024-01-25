@@ -1,12 +1,12 @@
 import pandas as pd
-class function1:
+class crnConverter:
     
-    def crn2Sorter(path_to_f23_students):
+    def crnConverter(path_to_f23_students):
         
         
         df_students = pd.read_excel(path_to_f23_students)
         
-        # Filtering
+        # Filtering 0 credit classes
         df_students_filtered = df_students[
         (df_students['CREDIT'] != 0) 
         ]       
@@ -23,7 +23,6 @@ class function1:
         combined_courses_filtered = combined_courses_filtered[['CRN2', 'Instructor', 'title']]
 
         # Exclude certain CRN2s
-        # Add all excluded CRN2s here
         excluded_crn2 = {""}  
         
         combined_courses_filtered = combined_courses_filtered[~combined_courses_filtered['CRN2'].isin(excluded_crn2)]
