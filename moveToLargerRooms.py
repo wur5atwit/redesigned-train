@@ -1,6 +1,6 @@
 import pandas as pd
 class moveToLargerRooms:
-    def optimize_room_assignments(possible_schedule_path, room_capacities_path):
+    def optimize_room_assignments(possible_schedule_path, room_capacities_path, output_file_path):
         
         exam_schedule = pd.read_excel(possible_schedule_path)
         room_capacities = pd.read_excel(room_capacities_path)
@@ -37,7 +37,7 @@ class moveToLargerRooms:
         final_sorted_schedule = updated_exam_schedule.sort_values(by='Count', ascending=False)
 
     
-        final_sorted_schedule.to_excel("updated_room_schedule.xlsx", index=False)
+        final_sorted_schedule.to_excel(output_file_path, index=False)
 
         return final_sorted_schedule
 

@@ -9,13 +9,20 @@ from crn2Splitter import crn2Splitter
 
 def raise_frame(frame):
     frame.tkraise()
+def ask_save_as_filename(default_name):
+    file_path = filedialog.asksaveasfilename(defaultextension=".xlsx",
+                                             filetypes=[("Excel files", "*.xlsx")],
+                                             initialfile=default_name)
+    return file_path if file_path else None
 
 def run_crn2Sorter(file_listbox):
     students_file_path = files.get("Students File")
     if students_file_path:
         try:
-            output = crnConverter.crnConverter(students_file_path)  
-            messagebox.showinfo("Result", "File Created: 'combined_courses_CRN2.xlsx' has been created.")
+            save_path = ask_save_as_filename("combined_courses_CRN2.xlsx")
+            if save_path:
+                output = crnConverter.crnConverter(students_file_path, save_path)
+                messagebox.showinfo("Result", f"File Created: '{save_path}' has been created.")
         except Exception as e:
             messagebox.showerror("Error", f"An error occurred: {e}")
     else:
@@ -65,9 +72,11 @@ def run_moveToLargerRooms(file_listbox):
         try:
             possible_schedule_file = files["Possible Schedule File"]
             room_capacities_file = files["Room Capacities File"]
-
-            optimized_schedule = moveToLargerRooms.optimize_room_assignments(possible_schedule_file, room_capacities_file)
-            messagebox.showinfo("File Created", "The optimized schedule file has been created.")
+            
+            save_path = ask_save_as_filename("optimized_rooms.xlsx")
+            if save_path:
+                optimized_schedule = moveToLargerRooms.optimize_room_assignments(possible_schedule_file, room_capacities_file, save_path)
+                messagebox.showinfo("File Created", f"The optimized schedule file '{save_path}' has been created.")
         except Exception as e:
             messagebox.showerror("Error", f"An error occurred: {e}")
     else:
@@ -78,8 +87,10 @@ def run_crn2Splitter(file_listbox):
     combined_crn2_file_path = files.get("Combined CRN2 File")
     if combined_crn2_file_path:
         try:
-            output = crn2Splitter.crn2Splitter(combined_crn2_file_path)  
-            messagebox.showinfo("Result", "File Created: 'Split_CRNs_Schedule.xlsx' has been created.")
+            save_path = ask_save_as_filename("Split_CRNs_Schedule.xlsx")
+            if save_path:
+                output = crn2Splitter.crn2Splitter(combined_crn2_file_path, save_path)
+                messagebox.showinfo("Result", f"File Created: '{save_path}' has been created.")
         except Exception as e:
             messagebox.showerror("Error", f"An error occurred: {e}")
     else:

@@ -1,7 +1,7 @@
 import pandas as pd
 class crnConverter:
     
-    def crnConverter(path_to_f23_students):
+    def crnConverter(path_to_f23_students, output_file_path):
         
         
         df_students = pd.read_excel(path_to_f23_students)
@@ -28,6 +28,6 @@ class crnConverter:
         combined_courses_filtered = combined_courses_filtered[~combined_courses_filtered['CRN2'].isin(excluded_crn2)]
 
         # Saving to Excel
-        combined_courses_filtered.to_excel("combined_courses_CRN2.xlsx", index=False)
+        combined_courses_filtered.to_excel(output_file_path, index=False)
 
         return combined_courses_filtered.head()

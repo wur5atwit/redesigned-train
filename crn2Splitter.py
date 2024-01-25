@@ -2,7 +2,7 @@ import pandas as pd
 
 class crn2Splitter:
     @staticmethod
-    def crn2Splitter(path_to_combined_crn2):
+    def crn2Splitter(path_to_combined_crn2, output_file_path):
         df_combined_crn2 = pd.read_excel(path_to_combined_crn2)
 
         # Preparing a list to hold new rows
@@ -23,6 +23,6 @@ class crn2Splitter:
         
         df_split = df_split[['CRN', 'INSTRUCTOR', 'SUBJECT']]
 
-        df_split.to_excel("Seperated_Crns.xlsx", index=False)
+        df_split.to_excel(output_file_path, index=False)
 
         return df_split
