@@ -2,21 +2,11 @@ import pandas as pd
 class function2:
     
     def count_faculty_conflicts(path_to_possible_schedule):
-        
         df_possible_schedule = pd.read_excel(path_to_possible_schedule)
 
         def has_time_overlap(schedule):
-            for day in range(1, 8):  # Assuming 1-7 represents days of the week
-                day_schedule = schedule[schedule['EXAM DAY'] == day]
-                time_slots = day_schedule['NewTime'].tolist()
-
-                # Debug print
-                #if len(day_schedule) > 0:
-                    #print(f"Day: {day}, Instructor: {schedule.iloc[0]['INSTRUCTOR']}, Time slots: {time_slots}")
-
-                if len(time_slots) != len(set(time_slots)):
-                    return True  # Overlap detected
-            return False
+            time_slots = schedule['NewTime'].tolist()
+            return len(time_slots) != len(set(time_slots))  # Overlap if duplicates exist
 
         faculty_conflicts = 0
 
@@ -30,8 +20,6 @@ class function2:
     @staticmethod
     def count_student_conflicts(path_to_f23_students, path_to_possible_schedule):
         
-
-        # Load the datasets
         df_students = pd.read_excel(path_to_f23_students)
         df_possible_schedule = pd.read_excel(path_to_possible_schedule)
 
@@ -48,12 +36,8 @@ class function2:
         df_merged = pd.merge(df_students_filtered, df_possible_schedule_exploded, on='CRN', how='left')
 
         def has_time_overlap(schedule):
-            schedule_grouped = schedule.groupby('EXAM DAY')
-            for day, day_schedule in schedule_grouped:
-                time_slots = day_schedule['NewTime'].tolist()
-                if len(time_slots) != len(set(time_slots)):
-                    return True
-            return False
+            time_slots = schedule['NewTime'].tolist()
+            return len(time_slots) != len(set(time_slots)) 
 
         student_conflicts = 0
         students_with_conflicts = []
@@ -94,26 +78,24 @@ class function2:
     
     @staticmethod
     def count_students_with_multiple_exams(path_to_f23_students, path_to_possible_schedule):
-       
-
-        # Load the datasets
+        
         df_f23_students = pd.read_excel(path_to_f23_students)
         df_possible_schedule = pd.read_excel(path_to_possible_schedule)
 
-    
         df_f23_students['CRN'] = df_f23_students['CRN'].astype(str)
 
         # Split 'CRN2' in 'Possible Schedule', convert to string and explode it for matching
         df_possible_schedule['CRN2'] = df_possible_schedule['CRN2'].astype(str).str.split('-')
         df_possible_schedule_exploded = df_possible_schedule.explode('CRN2')
-            # Merge datasets on 'CRN'
+        
+        # Merge datasets on 'CRN'
         df_merged = pd.merge(df_f23_students, df_possible_schedule_exploded, left_on='CRN', right_on='CRN2')
 
-        # Group by student name and exam day, then count the number of exams
-        exam_count_per_day = df_merged.groupby(['STUDENT NAME', 'EXAM DAY']).size().reset_index(name='Exam Count')
+        # Group by student name and NewTime, then count the number of exams
+        exam_count_per_newtime = df_merged.groupby(['STUDENT NAME', 'NewTime']).size().reset_index(name='Exam Count')
 
-        # Identify students with more than three exams in a single day
-        students_with_multiple_exams = exam_count_per_day[exam_count_per_day['Exam Count'] > 3]
+        # Identify students with more than three exams in a single NewTime slot
+        students_with_multiple_exams = exam_count_per_newtime[exam_count_per_newtime['Exam Count'] > 3]
 
         # Count the number of such students
         num_students = students_with_multiple_exams['STUDENT NAME'].nunique()
@@ -122,13 +104,11 @@ class function2:
     
     @staticmethod
     def count_double_booked_rooms(path_to_possible_schedule):
-       
-
-        # Load the dataset
+        
         df_possible_schedule = pd.read_excel(path_to_possible_schedule)
 
-        # Group by room, exam day, and exam time
-        room_booking_counts = df_possible_schedule.groupby(['Final Exam Room', 'EXAM DAY', 'NewTime']).size().reset_index(name='Booking Count')
+        # Group by room and NewTime
+        room_booking_counts = df_possible_schedule.groupby(['Final Exam Room', 'NewTime']).size().reset_index(name='Booking Count')
 
         # Identify double bookings where a room is booked more than once at the same time
         double_booked_rooms = room_booking_counts[room_booking_counts['Booking Count'] > 1]
