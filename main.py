@@ -15,18 +15,24 @@ def ask_save_as_filename(default_name):
                                              initialfile=default_name)
     return file_path if file_path else None
 
-def run_crn2Sorter(file_listbox):
+def run_crnConverter(file_listbox):
     students_file_path = files.get("Students File")
     if students_file_path:
         try:
-            save_path = ask_save_as_filename("combined_courses_CRN2.xlsx")
+            
+            save_path = ask_save_as_filename("combined_courses_CRN2")
             if save_path:
+               
                 output = crnConverter.crnConverter(students_file_path, save_path)
-                messagebox.showinfo("Result", f"File Created: '{save_path}' has been created.")
+                messagebox.showinfo("Result", f"File Updated: '{save_path}' has been created/updated.")
+            else:
+                messagebox.showwarning("Operation Cancelled", "File save operation was cancelled.")
         except Exception as e:
             messagebox.showerror("Error", f"An error occurred: {e}")
     else:
         messagebox.showwarning("Missing File", "Please upload the 'Students File' for CRN Convert to CRN2.")
+
+
 
 def format_dataframe(df):
     return df.to_string(index=False) if not df.empty else "No Data"
@@ -87,17 +93,22 @@ def run_crn2Splitter(file_listbox):
     combined_crn2_file_path = files.get("Combined CRN2 File")
     if combined_crn2_file_path:
         try:
+            
             save_path = ask_save_as_filename("Split_CRNs_Schedule.xlsx")
             if save_path:
+                
                 output = crn2Splitter.crn2Splitter(combined_crn2_file_path, save_path)
                 messagebox.showinfo("Result", f"File Created: '{save_path}' has been created.")
+            else:
+                messagebox.showwarning("Operation Cancelled", "File save operation was cancelled.")
         except Exception as e:
             messagebox.showerror("Error", f"An error occurred: {e}")
     else:
         messagebox.showwarning("Missing File", "Please upload the 'Combined CRN2 File' for CRN2 Separation.")
 
+
 def run_schedule():
-    run_crn2Sorter()
+    run_crnConverter()
     run_conflictChecker()
     run_moveToLargerRooms()
     run_crn2Splitter()
@@ -164,7 +175,7 @@ file_listbox1 = Listbox(function1_frame, selectmode=EXTENDED, width=100, height=
 file_listbox1.pack(pady=20)
 tk.Button(function1_frame, text="Upload Students File", command=lambda: add_file('Students File', file_listbox1)).pack()
 tk.Button(function1_frame, text="Delete Selected File", command=lambda: delete_file(file_listbox1)).pack()
-tk.Button(function1_frame, text="Run CRN Converter", command=lambda: run_crn2Sorter(file_listbox1)).pack()
+tk.Button(function1_frame, text="Run CRN Converter", command=lambda: run_crnConverter(file_listbox1)).pack()
 tk.Button(function1_frame, text="Back to Main Menu", command=lambda: raise_frame(main_frame)).pack()
 
 # Function 2 Frame widgets
