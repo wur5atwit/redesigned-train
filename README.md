@@ -1,14 +1,14 @@
 INPUTS NEEDED FOR:
-Student File: "STUDENT NAME", "title", "course_instructor", "CRN", "CREDIT"<br />
-Exam Schedule: "CRN2", "INSTRUCTOR", "NewTime", "EXAM DAY", "Final Exam Room"<br />
-Room Capacities: "ROOM NAME", "CAPACITY"<br />
---NAMES TO BE EXACTLY THE SAME--
-
-**Function 1 needs Student file.**
-**Function 2 needs Student, Exam Schedule, and Room capacities file.**
-**Function 3 needs Exam Schedule, and Room capacities file.**
+Student File: "STUDENT_NAME", "TITLE", "INSTRUCTOR", "CRN", "CREDIT"<br />
+Exam Schedule: "CRN2", "INSTRUCTOR", "NEW_TIME", "EXAM_ROOM"<br />
+Room Capacities: "ROOM_NAME", "CAPACITY"<br />
 
 
+**Function 1 needs Student file.**<br />
+**Function 2 needs Student, Exam Schedule, and Room capacities file.**<br />
+**Function 3 needs Exam Schedule, and Room capacities file.**<br />
+
+Merged student and exam schedule: "STUDENT_NAME", "CRN2", "CRN", "INSTRUCTOR", "CREDIT", "NEW_TIME", "EXAM_ROOM"<br />
 --**HOW TO RUN**--
 ## Installation
 
@@ -19,7 +19,7 @@ Run the main.py file and input the files that are asked.
 
 
 ## Infomation about functions
-Function 1 designed to process and combine data from an Excel spreadsheet for CRN2.
+Function 1 combines CRN into CRN2.
 
 Function 2:
 Count Faculty Conflict Function Designed to identify and count scheduling conflicts for faculty members based on exam schedules.
@@ -33,5 +33,5 @@ Count 3 in 1 Function  Designed to identify and count the number of students who
 Count Double Booked Room Function Method is designed to detect and count instances of double booking in exam rooms. This occurs when an exam room is scheduled to be used by more than one exam at the same time on the same day.
 
 Function 3:
-Maintain a list of available rooms for that day/time if there is a bigger available room swap rooms make the old room available
+Redos rooms for schedule giving the biggest room first to biggest class size.
 
