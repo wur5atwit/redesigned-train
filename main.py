@@ -35,11 +35,23 @@ def run_crnConverter(file_listbox):
 
 
 def format_dataframe(df):
-    return df.to_string(index=False) if not df.empty else "No Data"
+    return df.to_string(index=False) if not df.empty else "None"
 
 def format_list(lst):
     return ', '.join(lst) if lst else 'None'
 
+def display_results_in_scrolling_window(results_summary):
+    top = tk.Toplevel(root)
+    top.title("Conflict Check Results")
+
+    scrollbar = tk.Scrollbar(top)
+    scrollbar.pack(side="right", fill="y")
+
+    text = tk.Text(top, wrap="word", yscrollcommand=scrollbar.set)
+    text.pack(expand=True, fill="both")
+
+    text.insert(tk.END, results_summary)
+    scrollbar.config(command=text.yview)
 
 
 def run_conflictChecker(file_listbox):
@@ -56,15 +68,18 @@ def run_conflictChecker(file_listbox):
             students_with_multiple_exams_count, students_with_multiple_exams_details = conflictChecker.count_students_with_multiple_exams(students_file_path, possible_schedule_file)
             double_booked_rooms_count, double_booked_rooms_details = conflictChecker.count_double_booked_rooms(possible_schedule_file)
 
-            # Formatting the results for display
+            conflict_details_str = conflict_details.to_string(index=False) if not conflict_details.empty else "None"
+            students_with_multiple_exams_details_str = students_with_multiple_exams_details.to_string(index=False) if not students_with_multiple_exams_details.empty else "None"
+            double_booked_rooms_details_str = double_booked_rooms_details.to_string(index=False) if not double_booked_rooms_details.empty else "None"
+            
             results_summary = (f"Faculty Conflicts: {faculty_conflicts}\n" +
                                f"Student Conflicts: {student_conflicts}\n" +
                                f"Students with Conflicts: {format_list(students_with_conflicts)}\n" +
-                               f"Room Conflicts: {room_conflicts}\nDetails of Room Conflicts:\n{format_dataframe(conflict_details)}\n" +
-                               f"Students with Multiple Exams: {students_with_multiple_exams_count}\nDetails:\n{format_dataframe(students_with_multiple_exams_details)}\n" +
-                               f"Double Booked Rooms: {double_booked_rooms_count}\nDetails:\n{format_dataframe(double_booked_rooms_details)}")
-            
-            messagebox.showinfo("Results", results_summary)
+                               f"Room Conflicts: {room_conflicts}\nDetails of Room Conflicts:\n{conflict_details_str}\n" +
+                               f"Students with Multiple Exams: {students_with_multiple_exams_count}\nDetails:\n{students_with_multiple_exams_details_str}\n" +
+                               f"Double Booked Rooms: {double_booked_rooms_count}\nDetails:\n{double_booked_rooms_details_str}")
+
+            display_results_in_scrolling_window(results_summary)
         except Exception as e:
             messagebox.showerror("Error", f"An error occurred: {e}")
     else:

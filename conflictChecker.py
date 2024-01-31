@@ -1,5 +1,6 @@
 import pandas as pd
 import time
+import re
 class conflictChecker:
     
     def count_faculty_conflicts(path_to_possible_schedule):
@@ -92,25 +93,32 @@ class conflictChecker:
     @staticmethod
     def count_students_with_multiple_exams(path_to_f23_students, path_to_possible_schedule):
         start_time = time.time()
+
         df_f23_students = pd.read_excel(path_to_f23_students)
         df_possible_schedule = pd.read_excel(path_to_possible_schedule)
 
+        # Prepare CRN fields for merging
         df_f23_students['CRN'] = df_f23_students['CRN'].astype(str)
-
-        # Split 'CRN2' in 'Possible Schedule', convert to string and explode it for matching
         df_possible_schedule['CRN2'] = df_possible_schedule['CRN2'].astype(str).str.split('-')
         df_possible_schedule_exploded = df_possible_schedule.explode('CRN2')
-        
-        # Merge datasets on 'CRN'
+
         df_merged = pd.merge(df_f23_students, df_possible_schedule_exploded, left_on='CRN', right_on='CRN2')
 
-        # Group by student name and NewTime, then count the number of exams
-        exam_count_per_newtime = df_merged.groupby(['STUDENT NAME', 'NewTime']).size().reset_index(name='Exam Count')
+        exam_count_per_student = df_merged.groupby(['STUDENT NAME', 'EXAM DAY']).size().reset_index(name='Exam Count')
 
-        # Identify students with more than three exams in a single NewTime slot
-        students_with_multiple_exams = exam_count_per_newtime[exam_count_per_newtime['Exam Count'] > 3]
+        # Identify students with three or more exams on the same day
+        students_with_multiple_exams = exam_count_per_student[exam_count_per_student['Exam Count'] >= 3].copy()
 
-        # Count the number of such students
+        # Function to extract numbers from the string for sorting
+        def atoi(text):
+            return int(text) if text.isdigit() else text
+
+        def natural_keys(text):
+            return [atoi(c) for c in re.split(r'(\d+)', text)]
+
+        # Apply natural sort
+        students_with_multiple_exams.sort_values(by='STUDENT NAME', key=lambda x: x.map(natural_keys), inplace=True)
+
         num_students = students_with_multiple_exams['STUDENT NAME'].nunique()
 
         end_time = time.time() 
