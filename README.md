@@ -1,6 +1,6 @@
 INPUTS NEEDED FOR:
 Student File: "STUDENT_NAME", "TITLE", "INSTRUCTOR", "CRN", "CREDIT"<br />
-Exam Schedule: "CRN2", "INSTRUCTOR", "NEW_TIME", "EXAM_ROOM"<br />
+Exam Schedule: "CRN2", "INSTRUCTOR", "NEW_TIME", "EXAM_ROOM", EXAM_DAY<br />
 Room Capacities: "ROOM_NAME", "CAPACITY"<br />
 
 
