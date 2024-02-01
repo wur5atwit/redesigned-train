@@ -181,7 +181,7 @@ for frame in (main_frame, function1_frame, function2_frame, function3_frame, fun
 tk.Button(main_frame, text="CRN Convert to CRN2", command=lambda: raise_frame(function1_frame), bg=button_color).pack(pady=10)
 tk.Button(main_frame, text="Schedule Conflicts Checker", command=lambda: raise_frame(function2_frame), bg=button_color).pack(pady=10)
 tk.Button(main_frame, text="Room Optimizer", command=lambda: raise_frame(function3_frame), bg=button_color).pack(pady=10)
-tk.Button(main_frame, text="CRN2 Seperater", command=lambda: raise_frame(function4_frame), bg=button_color).pack(pady=10)
+tk.Button(main_frame, text="CRN2 Separator", command=lambda: raise_frame(function4_frame), bg=button_color).pack(pady=10)
 
 
 # Function 1 Frame widgets
