@@ -7,41 +7,37 @@ class moveToLargerRooms:
         exam_schedule = pd.read_excel(possible_schedule_path)
         room_capacities = pd.read_excel(room_capacities_path)
 
+        # Prepare room capacities, excluding 'ANXCN106', and sort by capacity in descending order
         room_capacities.rename(columns={'ROOM NAME': 'Room', 'CAPACITY': 'Capacity'}, inplace=True)
-        
-        # Ensure ANXC106 is excluded from the general list of available rooms
-        room_capacities = room_capacities[room_capacities['Room'] != 'ANXCN106']
+        large_rooms = room_capacities[room_capacities['Room'] != 'ANXCN106'].sort_values(by='Capacity', ascending=False)
 
-        updated_exams = []
+        # Initialize a dictionary to keep track of room assignments for each NewTime
+        assigned_rooms_per_newtime = {}
 
-        for _, exam in exam_schedule.iterrows():
-            original_room = exam['Final Exam Room']
-            if original_room == 'ANXCN106':
-                # If the original room is ANXC106, keep it as is
-                exam['New Assigned Room'] = 'ANXCN106'
-            else:
-                # Attempt to assign a new room
-                suitable_rooms = room_capacities[room_capacities['Capacity'] >= exam['Count']].copy()
-                if not suitable_rooms.empty:
-                    # Assign the first suitable room based on capacity
-                    exam['New Assigned Room'] = suitable_rooms.iloc[0]['Room']
-                    # Remove the assigned room from future consideration
-                    room_capacities = room_capacities[room_capacities['Room'] != suitable_rooms.iloc[0]['Room']]
+        for newtime in sorted(exam_schedule['NewTime'].unique()):
+            assigned_rooms_per_newtime[newtime] = set()
+            exams_at_newtime = exam_schedule[exam_schedule['NewTime'] == newtime]
+
+            for index, exam in exams_at_newtime.iterrows():
+                if exam['Final Exam Room'] == 'ANXCN106':
+                    # Keep 'ANXCN106' assignments unchanged
+                    exam_schedule.at[index, 'New Assigned Room'] = 'ANXCN106'
                 else:
-                    # If no suitable room found, keep the original room
-                    exam['New Assigned Room'] = original_room
+                    # Assign the next largest available room not yet used for this NewTime
+                    for _, room in large_rooms.iterrows():
+                        if room['Room'] not in assigned_rooms_per_newtime[newtime]:
+                            exam_schedule.at[index, 'New Assigned Room'] = room['Room']
+                            assigned_rooms_per_newtime[newtime].add(room['Room'])
+                            break
 
-            updated_exams.append(exam)
-
-        updated_exam_schedule = pd.DataFrame(updated_exams)
         
-        final_sorted_schedule = updated_exam_schedule.sort_values(by=['Count'], ascending=[False])
+        final_sorted_schedule = exam_schedule.sort_values(by=['NewTime', 'Count'], ascending=[True, False])
 
+        
         final_sorted_schedule.to_excel(output_file_path, index=False)
 
         end_time = time.time()
-        execution_time = end_time - start_time
-        print(f"Execution time to optimize room assignments: {execution_time} seconds")
+        print(f"Execution time to optimize room assignments: {end_time - start_time} seconds")
 
         return final_sorted_schedule
 
