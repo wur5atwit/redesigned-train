@@ -6,35 +6,51 @@ class ConflictChecker:
 
     def count_faculty_conflicts(path_to_possible_schedule):
         start_time = time.time()
+
+        
         df_possible_schedule = pd.read_excel(path_to_possible_schedule)
 
-        def has_time_overlap(schedule):
-            time_slots = schedule['NewTime'].tolist()
-            return len(time_slots) != len(set(time_slots))  # Overlap if duplicates exist
+        # Filter out 0 credit classes
+        df_filtered = df_possible_schedule[df_possible_schedule['CREDIT'] != 0]
 
         faculty_conflicts = 0
+        faculty_details = []
 
-        for instructor in df_possible_schedule['INSTRUCTOR'].unique():
-            instructor_schedule = df_possible_schedule[df_possible_schedule['INSTRUCTOR'] == instructor]
-            if has_time_overlap(instructor_schedule):
+        # Function to check for time overlaps with different CRN2s
+        def has_different_crn2_overlap(group):
+            for new_time in group['NewTime'].unique():
+                exams_at_time = group[group['NewTime'] == new_time]
+                if len(exams_at_time['CRN2'].unique()) > 1:
+                    return True
+            return False
+
+        # Check for conflicts for each instructor on each exam day
+        for (instructor, exam_day), group in df_filtered.groupby(['INSTRUCTOR', 'EXAM DAY']):
+            if has_different_crn2_overlap(group):
                 faculty_conflicts += 1
-        end_time = time.time() 
-        execution_time = end_time - start_time 
+                faculty_details.append((instructor, exam_day))
+
+        end_time = time.time()
+        execution_time = end_time - start_time
         print(f"Execution time for count_faculty_conflicts: {execution_time} seconds")
 
-        return faculty_conflicts
+        return faculty_conflicts, faculty_details
     
     @staticmethod
     def count_student_conflicts(path_to_merged_data):
         start_time = time.time()
 
-        df_merged = pd.read_excel(path_to_merged_data)
         
+        df_merged = pd.read_excel(path_to_merged_data)
         df_merged = df_merged[df_merged['CREDIT'] != 0]
 
-        def has_time_overlap(schedule):
-            time_slots = schedule['NewTime'].tolist()
-            return len(time_slots) != len(set(time_slots))
+        # Modified function to check for time overlaps with different CRN2s
+        def has_different_crn2_overlap(schedule):
+            # Group by NewTime to find overlaps
+            for new_time, group in schedule.groupby('NewTime'):
+                if len(group['CRN2'].unique()) > 1:  # More than one unique CRN2 at the same NewTime indicates a conflict
+                    return True
+            return False
 
         student_conflicts = 0
         students_with_conflicts = []
@@ -42,7 +58,7 @@ class ConflictChecker:
         # Check for conflicts
         for student in df_merged['STUDENT NAME'].unique():
             student_schedule = df_merged[df_merged['STUDENT NAME'] == student]
-            if has_time_overlap(student_schedule):
+            if has_different_crn2_overlap(student_schedule):
                 student_conflicts += 1
                 students_with_conflicts.append(student)
 
@@ -52,7 +68,7 @@ class ConflictChecker:
 
         return student_conflicts, students_with_conflicts
 
-    
+    # needs fixing
     @staticmethod
     def count_room_conflicts(path_to_room_capacities, path_to_possible_schedule):
         
@@ -62,7 +78,7 @@ class ConflictChecker:
         df_possible_schedule = pd.read_excel(path_to_possible_schedule)
 
 
-        # Merge the possible schedule with room capacities
+       
         df_merged = pd.merge(df_possible_schedule, df_room_capacities, left_on='Final Exam Room', right_on='ROOM NAME', how='left')
 
         # Identify conflicts where the number of students exceeds room capacity
@@ -121,29 +137,47 @@ class ConflictChecker:
         start_time = time.time()
         df_possible_schedule = pd.read_excel(path_to_possible_schedule)
 
-        # Group by room and NewTime
-        room_booking_counts = df_possible_schedule.groupby(['Final Exam Room', 'NewTime']).size().reset_index(name='Booking Count')
+        
+        df_filtered = df_possible_schedule[df_possible_schedule['CREDIT'] != 0]
 
-        # Identify double bookings where a room is booked more than once at the same time
-        double_booked_rooms = room_booking_counts[room_booking_counts['Booking Count'] > 1]
+        # Find all unique combinations of room, time, and CRN2, excluding 0 credit classes
+        unique_bookings = df_filtered[['Final Exam Room', 'NewTime', 'CRN2']].drop_duplicates()
 
-        # Count the number of double booked instances
-        num_double_bookings = double_booked_rooms.shape[0]
+        # Group by room and time to see if there are multiple CRN2s for the same room and time
+        grouped_bookings = unique_bookings.groupby(['Final Exam Room', 'NewTime'])
 
-        end_time = time.time() 
-        execution_time = end_time - start_time 
+        # Identify groups where the count of unique CRN2s is more than 1, indicating a conflict
+        conflicts = grouped_bookings.filter(lambda x: x['CRN2'].nunique() > 1)
+
+        # Count the number of conflicts by grouping again 
+        conflict_count = conflicts.groupby(['Final Exam Room', 'NewTime']).size().reset_index(name='Conflicts')
+
+        num_conflicts = conflict_count.shape[0]
+
+        end_time = time.time()
+        execution_time = end_time - start_time
         print(f"Execution time for count_double_booked_rooms: {execution_time} seconds")
 
-        return num_double_bookings, double_booked_rooms
+        return num_conflicts, conflict_count
     
-path_to_merged_data = r"changedstudent.xlsx"
+path_to_merged_data = r"C:\Users\richa\Downloads\COOP\changedstudent.xlsx"
+path_to_room = r"C:\Users\richa\Downloads\COOP\RoomCapacities.xlsx"
+#faculty = ConflictChecker.count_faculty_conflicts(path_to_merged_data)
+#print("facutly with conflicts:", faculty)
 
 #conflicts, students = ConflictChecker.count_student_conflicts(path_to_merged_data)
 #print(f"Total conflicts found: {conflicts}")
 #print("Students with conflicts:", students)
 
+#conflicts, rooms = ConflictChecker.count_room_conflicts(path_to_room, path_to_merged_data)
+#print(f"Total conflicts found: {conflicts}")
+#print("rooms with conflicts", rooms)
 
 
-num_students, students_with_multiple_exams = ConflictChecker.count_students_with_multiple_exams(path_to_merged_data)
-print(f"Number of students with three or more exams on the same day: {num_students}")
-print("Details of the students and their exam counts on those days:", students_with_multiple_exams)
+#num_students, students_with_multiple_exams = ConflictChecker.count_students_with_multiple_exams(path_to_merged_data)
+#print(f"Number of students with three or more exams on the same day: {num_students}")
+#print("Details of the students and their exam counts on those days:", students_with_multiple_exams)
+
+conflicts, rooms = ConflictChecker.count_double_booked_rooms(path_to_merged_data)
+print(f"Total conflicts found: {conflicts}")
+print("rooms doubled booked conflicts", rooms)
