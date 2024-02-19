@@ -68,26 +68,24 @@ class ConflictChecker2:
 
         return student_conflicts, students_with_conflicts
 
-    # needs fixing
     
     def count_room_conflicts(path_to_room_capacities, path_to_possible_schedule):
         
         start_time = time.time()
-        
-        df_room_capacities = pd.read_excel(path_to_room_capacities)
-        df_possible_schedule = pd.read_excel(path_to_possible_schedule)
 
+        df_possible_schedule = pd.read_excel(path_to_possible_schedule)
+        df_room_capacities = pd.read_excel(path_to_room_capacities)
+
+        df_possible_schedule_filtered = df_possible_schedule[df_possible_schedule['CREDIT'] != 0]
 
        
-        df_merged = pd.merge(df_possible_schedule, df_room_capacities, left_on='Final Exam Room', right_on='ROOM NAME', how='left')
+        df_merged = pd.merge(df_possible_schedule_filtered, df_room_capacities, left_on='Final Exam Room', right_on='ROOM NAME', how='left')
 
-        # Identify conflicts where the number of students exceeds room capacity
+        # Identify and count conflicts
         conflict_rooms = df_merged[df_merged['Count'] > df_merged['CAPACITY']]
-
-        # Count the number of conflicts
         num_conflicts = conflict_rooms.shape[0]
 
-        # Extract details of the conflicts
+        
         conflict_details = conflict_rooms[['Final Exam Room', 'Count', 'CAPACITY']]
 
         end_time = time.time() 
@@ -168,7 +166,7 @@ class ConflictChecker2:
 #print(f"Total conflicts found: {conflicts}")
 #print("Students with conflicts:", students)
 
-#conflicts, rooms = ConflictChecker.count_room_conflicts(path_to_room, path_to_merged_data)
+#conflicts, rooms = ConflictChecker2.count_room_conflicts(path_to_room, path_to_merged_data)
 #print(f"Total conflicts found: {conflicts}")
 #print("rooms with conflicts", rooms)
 
