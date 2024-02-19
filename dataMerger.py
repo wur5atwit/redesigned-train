@@ -15,7 +15,7 @@ def add_exam_info_to_student_schedule(student_schedule_path, exam_schedule_path,
         if key not in student_schedule.columns or key not in exam_schedule.columns:
             raise KeyError(f"'{key}' column not found in one or both DataFrames.")
 
-    # Merge the schedules
+    
     merged_schedule = pd.merge(student_schedule, exam_schedule, on=merge_keys, how='left')
 
    
@@ -26,14 +26,3 @@ def add_exam_info_to_student_schedule(student_schedule_path, exam_schedule_path,
 
     return merged_schedule
 
-# placeholders
-student_schedule_path = r"C:\Users\richa\Downloads\COOP\F23_Students.xlsx"
-exam_schedule_path = r"C:\Users\richa\Downloads\COOP\Possible_Schedule.xlsx"
-output_file_path = r"C:\Users\richa\Downloads\COOP\changedstudent.xlsx"
-
-
-try:
-    updated_student_schedule = add_exam_info_to_student_schedule(student_schedule_path, exam_schedule_path, output_file_path)
-    print(updated_student_schedule)
-except KeyError as e:
-    print(e)

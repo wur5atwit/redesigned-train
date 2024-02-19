@@ -2,7 +2,7 @@ import pandas as pd
 import time
 import re
 
-class ConflictChecker:
+class ConflictChecker2:
 
     def count_faculty_conflicts(path_to_possible_schedule):
         start_time = time.time()
@@ -36,7 +36,7 @@ class ConflictChecker:
 
         return faculty_conflicts, faculty_details
     
-    @staticmethod
+    
     def count_student_conflicts(path_to_merged_data):
         start_time = time.time()
 
@@ -69,7 +69,7 @@ class ConflictChecker:
         return student_conflicts, students_with_conflicts
 
     # needs fixing
-    @staticmethod
+    
     def count_room_conflicts(path_to_room_capacities, path_to_possible_schedule):
         
         start_time = time.time()
@@ -132,7 +132,7 @@ class ConflictChecker:
         return num_students, students_sorted_naturally[['STUDENT NAME', 'EXAM DAY', 'Exam Count']]
     
 
-    @staticmethod
+    
     def count_double_booked_rooms(path_to_possible_schedule):
         start_time = time.time()
         df_possible_schedule = pd.read_excel(path_to_possible_schedule)
@@ -140,7 +140,6 @@ class ConflictChecker:
         
         df_filtered = df_possible_schedule[df_possible_schedule['CREDIT'] != 0]
 
-        # Find all unique combinations of room, time, and CRN2, excluding 0 credit classes
         unique_bookings = df_filtered[['Final Exam Room', 'NewTime', 'CRN2']].drop_duplicates()
 
         # Group by room and time to see if there are multiple CRN2s for the same room and time
@@ -160,8 +159,8 @@ class ConflictChecker:
 
         return num_conflicts, conflict_count
     
-path_to_merged_data = r"C:\Users\richa\Downloads\COOP\changedstudent.xlsx"
-path_to_room = r"C:\Users\richa\Downloads\COOP\RoomCapacities.xlsx"
+#path_to_merged_data = r"C:\Users\richa\Downloads\COOP\changedstudent.xlsx"
+#path_to_room = r"C:\Users\richa\Downloads\COOP\RoomCapacities.xlsx"
 #faculty = ConflictChecker.count_faculty_conflicts(path_to_merged_data)
 #print("facutly with conflicts:", faculty)
 
@@ -178,6 +177,6 @@ path_to_room = r"C:\Users\richa\Downloads\COOP\RoomCapacities.xlsx"
 #print(f"Number of students with three or more exams on the same day: {num_students}")
 #print("Details of the students and their exam counts on those days:", students_with_multiple_exams)
 
-conflicts, rooms = ConflictChecker.count_double_booked_rooms(path_to_merged_data)
-print(f"Total conflicts found: {conflicts}")
-print("rooms doubled booked conflicts", rooms)
+#conflicts, rooms = ConflictChecker.count_double_booked_rooms(path_to_merged_data)
+#print(f"Total conflicts found: {conflicts}")
+#print("rooms doubled booked conflicts", rooms)
