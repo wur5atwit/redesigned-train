@@ -1,6 +1,6 @@
 import pandas as pd
 import time
-def add_exam_info_to_student_schedule(student_schedule_path, exam_schedule_path, output_file_path):
+def addExamToStudent(student_schedule_path, exam_schedule_path, output_file_path):
 
     start = time.time()
     student_schedule = pd.read_excel(student_schedule_path)

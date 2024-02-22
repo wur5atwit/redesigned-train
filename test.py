@@ -7,7 +7,7 @@ from crnConverter import crnConverter
 from test2 import ConflictChecker2
 from moveToLargerRooms import moveToLargerRooms
 from crn2Splitter import crn2Splitter
-from dataMerger import add_exam_info_to_student_schedule
+from dataMerger import addExamToStudent
 
 def raise_frame(frame):
     frame.tkraise()
@@ -59,11 +59,10 @@ def display_results_in_scrolling_window(results_summary):
 def run_conflictChecker(file_listbox):
     if "Student Exam File" in files and "Room Capacities File" in files:
         try:
-            possible_schedule_file = r"C:\Users\richa\Downloads\COOP\changedstudent.xlsx"
-            room_capacities_file = r"C:\Users\richa\Downloads\COOP\RoomCapacities.xlsx"
-            #possible_schedule_file = files["Student Exam File"]
             
-            #room_capacities_file = files["Room Capacities File"]
+            possible_schedule_file = files["Student Exam File"]
+            
+            room_capacities_file = files["Room Capacities File"]
 
             # Call methods from function2
             faculty_conflicts = ConflictChecker2.count_faculty_conflicts(possible_schedule_file)
@@ -125,16 +124,19 @@ def run_crn2Splitter(file_listbox):
     else:
         messagebox.showwarning("Missing File", "Please upload the 'Combined CRN2 File' for CRN2 Separation.")
 
-def run_add_exam_info(file_listbox):
-    student_schedule_path = files.get("Student Schedule File")
-    exam_schedule_path = files.get("Exam Schedule File")
-    
+def run_addExam_info(file_listbox):
+    student_schedule_path = files.get("Students File")
+    exam_schedule_path = files.get("Possible Schedule File")  # Make sure this matches the label used in add_file
+
+    print(f"Student Schedule Path: {student_schedule_path}")  # Debug print
+    print(f"Exam Schedule Path: {exam_schedule_path}")  # Debug print
+
     if student_schedule_path and exam_schedule_path:
         try:
             save_path = ask_save_as_filename("Merged_Student_Exam_Schedule.xlsx")
             if save_path:
-                
-                add_exam_info_to_student_schedule(student_schedule_path, exam_schedule_path, save_path)
+                # Assuming the function name is correct and exists
+                addExamToStudent(student_schedule_path, exam_schedule_path, save_path)
                 messagebox.showinfo("Success", f"Merged file saved as '{save_path}'.")
             else:
                 messagebox.showwarning("Operation Cancelled", "File save operation was cancelled.")
@@ -144,12 +146,13 @@ def run_add_exam_info(file_listbox):
         messagebox.showwarning("Missing Files", "Please upload both the Student Schedule File and the Exam Schedule File.")
 
 
+
 def run_schedule():
     run_crnConverter()
     run_conflictChecker()
     run_moveToLargerRooms()
     run_crn2Splitter()
-    run_add_exam_info()
+    run_addExam_info()
 
 
 def add_file(file_label, file_listbox):
@@ -157,6 +160,7 @@ def add_file(file_label, file_listbox):
     if file_path:
         files[file_label] = file_path
         file_listbox.insert(tk.END, f"{file_label}: {file_path}")
+        
 
 def delete_file(file_listbox):
     selected_indices = file_listbox.curselection()
@@ -255,7 +259,7 @@ file_listbox5.pack(pady=20)
 tk.Button(function5_frame, text="Upload Students File", command=lambda: add_file('Students File', file_listbox5)).pack()
 tk.Button(function5_frame, text="Upload Schedule File", command=lambda: add_file('Possible Schedule File', file_listbox5)).pack()
 tk.Button(function5_frame, text="Delete Selected File", command=lambda: delete_file(file_listbox5)).pack()
-tk.Button(function5_frame, text="Run File merger", command=lambda: run_crnConverter(file_listbox5)).pack()
+tk.Button(function5_frame, text="Run File merger", command=lambda: run_addExam_info(file_listbox5)).pack()
 tk.Button(function5_frame, text="Back to Main Menu", command=lambda: raise_frame(main_frame)).pack()
 
 raise_frame(main_frame)
