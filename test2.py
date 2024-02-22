@@ -97,18 +97,15 @@ class ConflictChecker2:
     def count_students_with_multiple_exams(path_to_merged_data):
         start_time = time.time()
 
-        
         df_merged = pd.read_excel(path_to_merged_data)
 
-        
-        df_filtered = df_merged[df_merged['CREDIT'] != 0]
+        df_filtered = df_merged[df_merged['CREDIT'] != 0].copy()
 
-        
         # Count exams per student per day
         exam_count_per_student = df_filtered.groupby(['STUDENT NAME', 'EXAM DAY']).size().reset_index(name='Exam Count')
 
         # Identify students with three or more exams on the same day
-        students_with_multiple_exams = exam_count_per_student[exam_count_per_student['Exam Count'] >= 3]
+        students_with_multiple_exams = exam_count_per_student[exam_count_per_student['Exam Count'] >= 3].copy()  # Explicit copy
 
         # Sorting function for natural sort of student names
         def atoi(text):
@@ -117,8 +114,8 @@ class ConflictChecker2:
         def natural_keys(text):
             return [atoi(c) for c in re.split(r'(\d+)', text)]
 
-        # Apply natural sort to student names
-        students_with_multiple_exams['sort_key'] = students_with_multiple_exams['STUDENT NAME'].apply(lambda x: natural_keys(x))
+        # Apply natural sort to student names.
+        students_with_multiple_exams['sort_key'] = students_with_multiple_exams['STUDENT NAME'].apply(natural_keys)
         students_sorted_naturally = students_with_multiple_exams.sort_values(by='sort_key').drop('sort_key', axis=1)
 
         num_students = students_sorted_naturally['STUDENT NAME'].nunique()
@@ -129,7 +126,7 @@ class ConflictChecker2:
 
         return num_students, students_sorted_naturally[['STUDENT NAME', 'EXAM DAY', 'Exam Count']]
     
-
+    
     
     def count_double_booked_rooms(path_to_possible_schedule):
         start_time = time.time()
@@ -156,25 +153,26 @@ class ConflictChecker2:
         print(f"Execution time for count_double_booked_rooms: {execution_time} seconds")
 
         return num_conflicts, conflict_count
-    
-#path_to_merged_data = r"C:\Users\richa\Downloads\COOP\changedstudent.xlsx"
-#path_to_room = r"C:\Users\richa\Downloads\COOP\RoomCapacities.xlsx"
-#faculty = ConflictChecker.count_faculty_conflicts(path_to_merged_data)
-#print("facutly with conflicts:", faculty)
+# """"
+# path_to_merged_data = r"C:\Users\richa\Downloads\COOP\changedstudent.xlsx"
+# path_to_room = r"C:\Users\richa\Downloads\COOP\RoomCapacities.xlsx"
+# faculty = ConflictChecker2.count_faculty_conflicts(path_to_merged_data)
+# print("facutly with conflicts:", faculty)
 
-#conflicts, students = ConflictChecker.count_student_conflicts(path_to_merged_data)
-#print(f"Total conflicts found: {conflicts}")
-#print("Students with conflicts:", students)
+# conflicts, students = ConflictChecker2.count_student_conflicts(path_to_merged_data)
+# print(f"Total conflicts found: {conflicts}")
+# print("Students with conflicts:", students)
 
-#conflicts, rooms = ConflictChecker2.count_room_conflicts(path_to_room, path_to_merged_data)
-#print(f"Total conflicts found: {conflicts}")
-#print("rooms with conflicts", rooms)
+# conflicts, rooms = ConflictChecker2.count_room_conflicts(path_to_room, path_to_merged_data)
+# print(f"Total conflicts found: {conflicts}")
+# print("rooms with conflicts", rooms)
 
 
-#num_students, students_with_multiple_exams = ConflictChecker.count_students_with_multiple_exams(path_to_merged_data)
-#print(f"Number of students with three or more exams on the same day: {num_students}")
-#print("Details of the students and their exam counts on those days:", students_with_multiple_exams)
+# num_students, students_with_multiple_exams = ConflictChecker2.count_students_with_multiple_exams(path_to_merged_data)
+# print(f"Number of students with three or more exams on the same day: {num_students}")
+# print("Details of the students and their exam counts on those days:", students_with_multiple_exams)
 
-#conflicts, rooms = ConflictChecker.count_double_booked_rooms(path_to_merged_data)
-#print(f"Total conflicts found: {conflicts}")
-#print("rooms doubled booked conflicts", rooms)
+# conflicts, rooms = ConflictChecker2.count_double_booked_rooms(path_to_merged_data)
+# print(f"Total conflicts found: {conflicts}")
+# print("rooms doubled booked conflicts", rooms)
+# """
