@@ -130,6 +130,38 @@ class ConflictChecker:
         print(f"Execution time for count_double_booked_rooms: {execution_time} seconds")
 
         return num_double_bookings, double_booked_rooms
+def notify_about_moving_multi_section_courses(crn2_str, df_student, df_schedule):
+    
+    moving_crn_list = crn2_str.split('-')
+    moving_course_titles = df_student[df_student['CRN'].astype(str).isin(moving_crn_list)]['title'].unique()
+    
+    for title in moving_course_titles:
+        # Find all CRNs for courses with this title, excluding the moving CRNs
+        all_crns_for_title = df_student[df_student['title'] == title]['CRN'].unique()
+        crns_excluding_moving = [crn for crn in all_crns_for_title if str(crn) not in moving_crn_list]
+        
+        if not crns_excluding_moving: 
+            continue
+        # Check if the remaining CRNs are part of the schedule's CRN2 
+        matches = df_schedule['CRN2'].apply(lambda x: any(str(crn) in x for crn in crns_excluding_moving))
+        if matches.any():
+            print(f"Moving CRN2 {crn2_str} affects other sections of '{title}'. Consider exam scheduling impacts.")
+            break
+
+
+
+def find_larger_available_room(current_room, newtime, df_room_capacities, modified_schedule):
+    current_capacity = df_room_capacities.loc[df_room_capacities['ROOM NAME'] == current_room, 'CAPACITY'].iloc[0]
+    available_rooms = df_room_capacities[(df_room_capacities['CAPACITY'] > current_capacity) & (df_room_capacities['ROOM NAME'] != "ANXCN106")].sort_values('CAPACITY', ascending=True)
+    
+    for _, room_row in available_rooms.iterrows():
+        room_name = room_row['ROOM NAME']
+        # Check if this room is already booked at the newtime
+        if not modified_schedule[(modified_schedule['Final Exam Room'] == room_name) & (modified_schedule['NewTime'] == newtime)].empty:
+            continue  
+        return room_name 
+    
+    return current_room
 
 
 
@@ -142,13 +174,24 @@ def move_crn_to_all_new_times_and_check_conflicts(crn2_str, exam_schedule_df, ro
 
     for newtime, (new_day, new_time) in newtime_mapping.items():
         modified_schedule = exam_schedule_df.copy()
-
-        # Find rows where CRN2 matches the crn2_str and update them
+        
         crn2_exists = modified_schedule['CRN2'].str.contains(crn2_str)
-        modified_schedule.loc[crn2_exists, 'EXAM DAY'] = new_day
-        modified_schedule.loc[crn2_exists, 'EXAM TIME'] = new_time
-        modified_schedule.loc[crn2_exists, 'NewTime'] = newtime
+        if crn2_exists.any():
+            notify_about_moving_multi_section_courses(crn2_str, f23_students_df, exam_schedule_df)
+            
+            original_room = modified_schedule.loc[crn2_exists, 'Final Exam Room'].iloc[0]
+            larger_room = find_larger_available_room(original_room, newtime, room_capacities_df, modified_schedule)
+            if larger_room != original_room and larger_room != "ANXCN106":
+                print(f"CRN2 {crn2_str} moved to a larger room: {larger_room} for new time {newtime}.")
+            else:
+                print(f"CRN2 {crn2_str} remains in the same room: {original_room} for new time {newtime}.")
 
+            modified_schedule.loc[crn2_exists, 'EXAM DAY'] = new_day
+            modified_schedule.loc[crn2_exists, 'EXAM TIME'] = new_time
+            modified_schedule.loc[crn2_exists, 'NewTime'] = newtime
+            modified_schedule.loc[crn2_exists, 'Final Exam Room'] = larger_room if larger_room != "ANXCN106" else original_room
+
+        # After updating the room assignments, check conflicts
         print(f"\nConflicts for new time {newtime}:")
         faculty_conflicts = ConflictChecker.count_faculty_conflicts(modified_schedule)
         student_conflicts, students_with_conflicts = ConflictChecker.count_student_conflicts(f23_students_df, modified_schedule)
@@ -183,10 +226,10 @@ f23_students_path = "C:/Users/richa/Downloads/COOP/F23_Students.xlsx"
 
 exam_schedule_df = pd.read_excel(exam_schedule_path)
 room_capacities_df = pd.read_excel(room_capacities_path)
-f23_students_df = pd.read_excel(f23_students_path)
+df_student = pd.read_excel(f23_students_path)
 
 
-crn2_str = "12264-12265-12266-12267-12778"
+crn2_str = "11615"
+crn_to_title_map = df_student.set_index('CRN')['title'].to_dict()
 
-
-move_crn_to_all_new_times_and_check_conflicts(crn2_str, exam_schedule_df, room_capacities_df, f23_students_df)
+move_crn_to_all_new_times_and_check_conflicts(crn2_str, exam_schedule_df, room_capacities_df, df_student)
