@@ -1,18 +1,38 @@
 import pandas as pd
-def swap_courses_time_slots(schedule_df, source_idx, target_idx):
-    
-    source_course = schedule_df.at[source_idx, 'CRN2']
-    target_course = schedule_df.at[target_idx, 'CRN2']
-    
-    # Perform the swap of EXAM DAY and EXAM TIME
-    temp = schedule_df.loc[source_idx, ['EXAM DAY', 'EXAM TIME']].copy()
-    schedule_df.loc[source_idx, ['EXAM DAY', 'EXAM TIME']] = schedule_df.loc[target_idx, ['EXAM DAY', 'EXAM TIME']]
-    schedule_df.loc[target_idx, ['EXAM DAY', 'EXAM TIME']] = temp
+def swap_courses_within_same_day(schedule_df, day, most_popular_time_slot):
+    classes_on_day = schedule_df[schedule_df['EXAM DAY'] == day]
+    if classes_on_day.empty:
+        print(f"No classes found for Day {day}.")
+        return
 
-    print(f"Swapped '{source_course}' to the popular time slot, moving '{target_course}' to another time slot.")
+    # Attempt to find a class to swap with at the most popular time slot
+    class_at_popular_time = classes_on_day[classes_on_day['EXAM TIME'] == most_popular_time_slot]
+    max_students_class = classes_on_day.sort_values('Count', ascending=False).head(1)
+
+    if max_students_class.empty:
+        print(f"No classes on Day {day} to consider for swapping.")
+        return
+
+    max_students_class_idx = max_students_class.index[0]
+    max_students_crn = schedule_df.loc[max_students_class_idx, 'CRN2']
+
+    # If there is no class at the most popular time slot or if the class with the most students is already there
+    if class_at_popular_time.empty or max_students_class_idx in class_at_popular_time.index:
+        print(f"Day {day}: No swap needed or possible for '{max_students_crn}'.")
+    else:
+        class_at_popular_time_idx = class_at_popular_time.index[0]
+        target_crn = schedule_df.loc[class_at_popular_time_idx, 'CRN2']
+
+        # Swap the EXAM TIME between these two classes
+        temp_time = schedule_df.loc[max_students_class_idx, 'EXAM TIME']
+        schedule_df.loc[max_students_class_idx, 'EXAM TIME'] = most_popular_time_slot
+        schedule_df.loc[class_at_popular_time_idx, 'EXAM TIME'] = temp_time
+
+        print(f"Day {day}: Swapped '{max_students_crn}' with '{target_crn}' to move to time slot {most_popular_time_slot}.")
 
 
-def popular_time_day_schedule(possible_schedule_df, popular_day_number=2, least_popular_day_number=4, most_popular_time_slot=2):
+
+def popular_time_day_schedule(possible_schedule_df, popular_day_number, least_popular_day_number, most_popular_time_slot):
     newtime_mapping = {
         (1, 1): 0, 
         (2, 1): 1,
@@ -42,30 +62,20 @@ def popular_time_day_schedule(possible_schedule_df, popular_day_number=2, least_
     print(f"Day {most_students_day_letter} has the most students and is assigned to popular day {popular_day_number}.")
     print(f"Day {least_students_day_letter} has the least students and is assigned to least popular day {least_popular_day_number}.")
 
-    # Update 'EXAM DAY' for the most and least student-populated days
+    # Update 'EXAM DAY' for the most and least populated days
     possible_schedule_df.loc[possible_schedule_df['Day Letter'] == most_students_day_letter, 'EXAM DAY'] = popular_day_number
     possible_schedule_df.loc[possible_schedule_df['Day Letter'] == least_students_day_letter, 'EXAM DAY'] = least_popular_day_number
 
-    # Assign the most popular time slot to the class with the most students on each day
     for day in possible_schedule_df['EXAM DAY'].unique():
-        day_classes = possible_schedule_df[possible_schedule_df['EXAM DAY'] == day]
-        max_students_class_idx = day_classes['Count'].idxmax()  # Class with the most students on this day
-        popular_time_class = possible_schedule_df[(possible_schedule_df['EXAM DAY'] == popular_day_number) & (possible_schedule_df['EXAM TIME'] == most_popular_time_slot)]
-
-        if not popular_time_class.empty:
-            popular_time_class_idx = popular_time_class.index[0]
-            # Perform swap if the class with the most students is not already in the popular time slot
-            if max_students_class_idx != popular_time_class_idx:
-                swap_courses_time_slots(possible_schedule_df, max_students_class_idx, popular_time_class_idx)
-
+        swap_courses_within_same_day(possible_schedule_df, day, most_popular_time_slot)
     
-    possible_schedule_df['NewTime'] = possible_schedule_df.apply(lambda row: newtime_mapping[(row['EXAM DAY'], row['EXAM TIME'])], axis=1)
-
+    possible_schedule_df['NewTime'] = possible_schedule_df.apply(lambda row: newtime_mapping.get((row['EXAM DAY'], row['EXAM TIME'])), axis=1)
+    
     return possible_schedule_df
 
 possible_schedule_path = r"C:\Users\richa\Downloads\COOP\Possible_Schedule.xlsx" 
 possible_schedule_df = pd.read_excel(possible_schedule_path)
-optimized_schedule_df = popular_time_day_schedule(possible_schedule_df, popular_day_number=2, least_popular_day_number=4)
+optimized_schedule_df = popular_time_day_schedule(possible_schedule_df, 2, 4, 2)
 optimized_output_path = "popular_time_day_schedule.xlsx"
 optimized_schedule_df.to_excel(optimized_output_path, index=False)
 
