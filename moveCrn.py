@@ -26,7 +26,7 @@ class ConflictChecker:
         df_students['CRN'] = df_students['CRN'].astype(str)
         df_students_filtered = df_students[df_students['CREDIT'] != 0]
 
-        # Prepare the possible schedule data
+        
         df_possible_schedule['CRN'] = df_possible_schedule['CRN2'].str.split('-')
         df_possible_schedule_exploded = df_possible_schedule.explode('CRN')
         df_possible_schedule_exploded['CRN'] = df_possible_schedule_exploded['CRN'].astype(str)
@@ -52,7 +52,7 @@ class ConflictChecker:
 
     def count_room_conflicts(df_room_capacities, df_possible_schedule):
         
-        # Merge the possible schedule with room capacities
+        
         df_merged = pd.merge(df_possible_schedule, df_room_capacities, left_on='Final Exam Room', right_on='ROOM NAME', how='left')
 
         # Identify conflicts where the number of students exceeds room capacity
@@ -69,7 +69,7 @@ class ConflictChecker:
 
     def count_students_with_multiple_exams(df_students, df_possible_schedule):
 
-        # Prepare CRN fields for merging
+        
         df_students['CRN'] = df_students['CRN'].astype(str)
         df_possible_schedule['CRN2'] = df_possible_schedule['CRN2'].astype(str).str.split('-')
         df_possible_schedule_exploded = df_possible_schedule.explode('CRN2')
@@ -157,6 +157,7 @@ class moveCrn:
             12: (2, 4), 13: (1, 4), 14: (3, 4), 15: (4, 4)
         }
         conflict_summaries = []  
+        
         for newtime, (new_day, new_time) in newtime_mapping.items():
             modified_schedule = exam_schedule_df.copy()
             moving_message = ""
@@ -192,8 +193,38 @@ class moveCrn:
                 if not double_booked_rooms_details.empty:
                     summary += f"Details of Double Booked Rooms: {double_booked_rooms_details.to_string(index=False)}\n"
                 
-
-                conflict_summaries.append(summary)
-
-        return conflict_summaries
+                conflict_data = {
+                'newtime': newtime,
+                'faculty_conflicts': faculty_conflicts,
+                'student_conflicts': student_conflicts,
+                'room_conflicts': room_conflicts,
+                'students_with_multiple_exams': students_with_multiple_exams,
+                'double_booked_rooms': double_booked_rooms,
+                'summary': summary  
+                }
             
+                conflict_summaries.append(conflict_data)
+        
+                
+            sorted_conflict_data = sorted(conflict_summaries, key=lambda x: (x['faculty_conflicts'], x['student_conflicts'], x['room_conflicts'], x['students_with_multiple_exams']))
+        
+        
+        for data in sorted_conflict_data:
+            print(data['summary'])
+            print("--------------------------------------------------\n")
+""""       
+possible_schedule_path = r"C:\Users\richa\Downloads\COOP\Possible_Schedule.xlsx"
+room_capacities_path = r"C:\Users\richa\Downloads\COOP\RoomCapacities.xlsx"
+students_path = r"C:\Users\richa\Downloads\COOP\F23_Students.xlsx"
+
+
+
+
+move_crn_instance = moveCrn()
+
+
+crn2_str = "11615"
+
+
+move_crn_instance.move_crn_to_all_new_times_and_check_conflicts(crn2_str, possible_schedule_path, room_capacities_path, students_path)
+"""
