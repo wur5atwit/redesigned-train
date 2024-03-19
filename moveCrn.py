@@ -144,13 +144,27 @@ class moveCrn:
         return current_room, f"CRN2 {crn2_str} remains in the same room: {current_room}"
 
 
-
+    def is_crn_valid(self, crn2_str, df_possible_schedule):
+        
+        individual_crns = crn2_str.split('-')
+        # For each individual CRN, check if it exists in any of the CRN2 strings in the schedule
+        for crn in individual_crns:
+            
+            pattern = f'(^{crn}$)|(^{crn}-)|(-{crn}-)|(-{crn}$)'
+            if not df_possible_schedule['CRN2'].str.contains(pattern).any():
+                
+                return False
+        # If all CRNs are found in the schedule, return True
+        return True
 
     def move_crn_to_all_new_times_and_check_conflicts(self, crn2_str, exam_schedule_df, room_capacities_df, f23_students_df):
         exam_schedule_df = pd.read_excel(exam_schedule_df)
         room_capacities_df = pd.read_excel(room_capacities_df)
         f23_students_df = pd.read_excel(f23_students_df)
 
+        if not self.is_crn_valid(crn2_str, exam_schedule_df):
+            return f"CRN {crn2_str} does not exist in the schedule."
+    
         newtime_mapping = {
             0: (1, 1), 1: (2, 1), 2: (2, 2), 3: (3, 1), 4: (3, 2), 5: (1, 2),
             6: (4, 1), 7: (4, 2), 8: (2, 3), 9: (4, 3), 10: (3, 3), 11: (1, 3),
@@ -201,7 +215,7 @@ class moveCrn:
             }
             conflict_summaries.append(conflict_data)
 
-        # Sort the summaries based on your criteria
+        
         sorted_conflict_data = sorted(
             conflict_summaries,
             key=lambda x: (
