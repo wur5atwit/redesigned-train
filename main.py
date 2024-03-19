@@ -129,26 +129,23 @@ def run_moveCrn(file_listbox):
 
     if "Possible Schedule File" in files and "Room Capacities File" in files and "Students File" in files:
         try:
-            possible_schedule_df = files["Possible Schedule File"]
-            room_capacities_df = files["Room Capacities File"]
-            students_df = files["Students File"]
+            possible_schedule_path = files["Possible Schedule File"]
+            room_capacities_path = files["Room Capacities File"]
+            students_path = files["Students File"]
 
             move_crn_instance = moveCrn()
 
             conflict_summaries = move_crn_instance.move_crn_to_all_new_times_and_check_conflicts(
-                crn2_str, possible_schedule_df, room_capacities_df, students_df
+                crn2_str, possible_schedule_path, room_capacities_path, students_path
             )
 
-            conflict_details_formatted = "\n\n".join(conflict_summaries)
+            display_results_in_scrolling_window(conflict_summaries)
 
-
-            display_results_in_scrolling_window(conflict_details_formatted)
-
-            if messagebox.askyesno("Save Results", "Do you want to save these results to an Excel file?"):
-                save_path = ask_save_as_filename("Conflict_Summaries")
-                if save_path: 
-                    df = pd.DataFrame({'Conflict Summaries': conflict_summaries})
-                    df.to_excel(save_path, index=False)
+            if messagebox.askyesno("Save Results", "Do you want to save these results to a text file?"):
+                save_path = ask_save_as_filename("Conflict_Summaries.txt")  # Updated to suggest saving as a .txt file
+                if save_path:
+                    with open(save_path, 'w') as f:
+                        f.write(conflict_summaries)
                     messagebox.showinfo("Saved", "The conflict summaries have been saved to: " + save_path)
                 else:
                     messagebox.showinfo("Cancelled", "Save operation was cancelled.")
@@ -156,7 +153,9 @@ def run_moveCrn(file_listbox):
         except Exception as e:
             messagebox.showerror("Error", f"An error occurred: {e}")
     else:
-        messagebox.showwarning("Missing Files", "Please upload all required files for operation.")
+        messagebox.showwarning("Missing Files", "Please upload all required files for the operation.")
+
+
 
 
 def run_schedule():

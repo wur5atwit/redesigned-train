@@ -126,7 +126,7 @@ class moveCrn:
             # Check if the remaining CRNs are part of the schedule's CRN2 
             matches = df_schedule['CRN2'].apply(lambda x: any(str(crn) in x for crn in crns_excluding_moving))
             if matches.any():
-                message = f"Moving CRN2 {crn2_str} affects other sections of '{title}'. Consider exam scheduling impacts."
+                message = f"Moving CRN2 {crn2_str} affects other sections of '{title}'"
         return message
 
 
@@ -181,50 +181,50 @@ class moveCrn:
                 room_conflicts, conflict_details = ConflictChecker.count_room_conflicts(room_capacities_df, modified_schedule)
                 students_with_multiple_exams, students_with_multiple_exams_details = ConflictChecker.count_students_with_multiple_exams(f23_students_df, modified_schedule)
                 double_booked_rooms, double_booked_rooms_details = ConflictChecker.count_double_booked_rooms(modified_schedule)
+                conflict_details_str = "None" if conflict_details.empty else conflict_details.to_string(index=False)
+                students_with_multiple_exams_details_str = "None" if students_with_multiple_exams_details.empty else students_with_multiple_exams_details.to_string(index=False)
+                double_booked_rooms_details_str = "None" if double_booked_rooms_details.empty else double_booked_rooms_details.to_string(index=False)
 
-                summary = f"New Time: {newtime}\n{moving_message}\n{room_message}\nFaculty Conflicts: {faculty_conflicts}\n"
-                summary += f"Student Conflicts: {student_conflicts}\nStudent Details: {students_with_conflicts}\nRoom Conflicts: {room_conflicts}\n"
-                if not conflict_details.empty:
-                    summary += f"Details of Room Conflicts: {conflict_details.to_string(index=False)}\n"
-                summary += f"Students with Multiple Exams: {students_with_multiple_exams}\n"
-                if not students_with_multiple_exams_details.empty:
-                    summary += f"Details of Students with Multiple Exams: {students_with_multiple_exams_details.to_string(index=False)}\n"
-                summary += f"Double Booked Rooms: {double_booked_rooms}\n"
-                if not double_booked_rooms_details.empty:
-                    summary += f"Details of Double Booked Rooms: {double_booked_rooms_details.to_string(index=False)}\n"
-                
                 conflict_data = {
                 'newtime': newtime,
+                'moving_message': moving_message,
+                'room_message': room_message,
                 'faculty_conflicts': faculty_conflicts,
                 'student_conflicts': student_conflicts,
+                'students_with_conflicts_str': students_with_conflicts,
                 'room_conflicts': room_conflicts,
+                'conflict_details_str': conflict_details_str,
                 'students_with_multiple_exams': students_with_multiple_exams,
+                'students_with_multiple_exams_details_str': students_with_multiple_exams_details_str,
                 'double_booked_rooms': double_booked_rooms,
-                'summary': summary  
-                }
-            
-                conflict_summaries.append(conflict_data)
-        
-                
-            sorted_conflict_data = sorted(conflict_summaries, key=lambda x: (x['faculty_conflicts'], x['student_conflicts'], x['room_conflicts'], x['students_with_multiple_exams']))
-        
-        
-        for data in sorted_conflict_data:
-            print(data['summary'])
-            print("--------------------------------------------------\n")
-""""       
-possible_schedule_path = r"C:\Users\richa\Downloads\COOP\Possible_Schedule.xlsx"
-room_capacities_path = r"C:\Users\richa\Downloads\COOP\RoomCapacities.xlsx"
-students_path = r"C:\Users\richa\Downloads\COOP\F23_Students.xlsx"
+                'double_booked_rooms_details_str': double_booked_rooms_details_str,
+            }
+            conflict_summaries.append(conflict_data)
 
+        # Sort the summaries based on your criteria
+        sorted_conflict_data = sorted(
+            conflict_summaries,
+            key=lambda x: (
+                x['faculty_conflicts'],
+                x['student_conflicts'],
+                x['room_conflicts'],
+                x['students_with_multiple_exams']
+            )
+        )
 
+        formatted_summaries = "\n\n".join([
+    "\n".join([
+        f"New Time: {data['newtime']}",
+        f"{data['moving_message']}",
+        f"{data['room_message']}",
+        f"Faculty Conflicts: {data['faculty_conflicts']}",
+        f"Student Conflicts: {data['student_conflicts']} ({', '.join(data['students_with_conflicts_str']) if data['students_with_conflicts_str'] else 'None'})",
+        f"Room Conflicts: {data['room_conflicts']} \n({'None' if data['conflict_details_str'] == 'None' else data['conflict_details_str']})",
+        f"Students with Multiple Exams: {data['students_with_multiple_exams']} \n({'See details' if data['students_with_multiple_exams_details_str'] != 'None' else 'None'})",
+        f"Double Booked Rooms: {data['double_booked_rooms']} \n({'None' if data['double_booked_rooms_details_str'] == 'None' else data['double_booked_rooms_details_str']})",
+    ]) + (("\nDetails for Students with Multiple Exams:\n" + data['students_with_multiple_exams_details_str']) if data['students_with_multiple_exams_details_str'] != 'None' else "")
+    for data in sorted_conflict_data
+])
 
+        return formatted_summaries
 
-move_crn_instance = moveCrn()
-
-
-crn2_str = "11615"
-
-
-move_crn_instance.move_crn_to_all_new_times_and_check_conflicts(crn2_str, possible_schedule_path, room_capacities_path, students_path)
-"""
