@@ -1,116 +1,84 @@
 import pandas as pd
-def swap_courses_within_same_day(schedule_df, day, most_popular_time_slot):
-    outcome = {
-        'day': day,
-        'swap_made': False,
-        'message': "",
-        'details': {
-            'max_students_crn': None,
-            'target_crn': None,
-            'original_time': None,
-            'new_time': None
-        }
-    }
 
-    classes_on_day = schedule_df[schedule_df['EXAM DAY'] == day]
-    if classes_on_day.empty:
-        outcome['message'] = f"No classes found for Day {day}."
-        return outcome
+def aggregate_student_counts(possible_schedule_df):
+    day_counts = possible_schedule_df.groupby('EXAM DAY')['Count'].sum().reset_index()
+    day_counts_sorted = day_counts.sort_values(by='Count', ascending=False)
+    print("Day counts sorted by student numbers:")
+    print(day_counts_sorted)
+    return day_counts_sorted
 
-    class_at_popular_time = classes_on_day[classes_on_day['EXAM TIME'] == most_popular_time_slot]
-    max_students_class = classes_on_day.sort_values('Count', ascending=False).head(1)
+def get_user_day_order(day_counts_sorted):
+    print("Please rank the days based on your preference for scheduling (e.g., 3,1,4,2):")
+    user_order = input("Enter your preferred order of days: ")
+    ordered_days = [int(day.strip()) for day in user_order.split(",") if day.strip().isdigit()]
+    return ordered_days
 
-    if max_students_class.empty:
-        outcome['message'] = f"No classes on Day {day} to consider for swapping."
-        return outcome
+def auto_assign_exam_times(possible_schedule_df, day, available_times):
+    exams_that_day = possible_schedule_df[possible_schedule_df['EXAM DAY'] == day].copy()
+    if exams_that_day.empty:
+        print(f"No exams scheduled for Day {day}.")
+        return possible_schedule_df
 
-    max_students_class_idx = max_students_class.index[0]
-    max_students_crn = schedule_df.loc[max_students_class_idx, 'CRN2']
+    best_time = int(input(f"Enter the best exam time for Day {day}: "))
+    worst_time = int(input(f"Enter the worst exam time for Day {day}: "))
 
-    if class_at_popular_time.empty or max_students_class_idx in class_at_popular_time.index:
-        outcome['message'] = f"Day {day}: No swap needed or possible for '{max_students_crn}'."
-    else:
-        class_at_popular_time_idx = class_at_popular_time.index[0]
-        target_crn = schedule_df.loc[class_at_popular_time_idx, 'CRN2']
+    exams_sorted_by_count = exams_that_day.sort_values(by='Count', ascending=False)
+    exams_sorted_by_count.iloc[0, exams_sorted_by_count.columns.get_loc('EXAM TIME')] = best_time
+    if len(exams_sorted_by_count) > 1:
+        exams_sorted_by_count.iloc[-1, exams_sorted_by_count.columns.get_loc('EXAM TIME')] = worst_time
 
-        # Recording original and new times for the swap
-        original_time = schedule_df.loc[max_students_class_idx, 'EXAM TIME']
-        schedule_df.loc[max_students_class_idx, 'EXAM TIME'] = most_popular_time_slot
-        schedule_df.loc[class_at_popular_time_idx, 'EXAM TIME'] = original_time
+    # Initialize room availability
+    room_availability = {room: [time for time in available_times if time not in [best_time, worst_time]] for room in exams_that_day['Final Exam Room'].unique()}
 
-        outcome['swap_made'] = True
-        outcome['message'] = f"Day {day}: Swapped '{max_students_crn}' with '{target_crn}' to move to time slot {most_popular_time_slot}."
-        outcome['details'] = {
-            'max_students_crn': max_students_crn,
-            'target_crn': target_crn,
-            'original_time': original_time,
-            'new_time': most_popular_time_slot
-        }
+    # Assign times for remaining exams
+    for index, exam in exams_sorted_by_count.iloc[1:-1].iterrows():
+        room = exam['Final Exam Room']
+        for time in room_availability[room]:
+            # Check if the time is available in this room
+            if not possible_schedule_df[(possible_schedule_df['Final Exam Room'] == room) & (possible_schedule_df['EXAM TIME'] == time)].empty:
+                continue  
+            exams_sorted_by_count.at[index, 'EXAM TIME'] = time
+            break
 
-    return outcome
+    for index, row in exams_sorted_by_count.iterrows():
+        possible_schedule_df.loc[possible_schedule_df['CRN2'] == row['CRN2'], 'EXAM TIME'] = row['EXAM TIME']
 
+    return possible_schedule_df
 
+def change_exam_time_if_desired(possible_schedule_df, available_times):
+    while True:
+        change = input("Do you want to change the time for any exam? (yes/no): ").lower()
+        if change != 'yes':
+            break
 
-def popular_time_day_schedule(possible_schedule_df, popular_day_number, least_popular_day_number, most_popular_time_slot):
-    newtime_mapping = {
-        (1, 1): 0, (2, 1): 1, (2, 2): 2, (3, 1): 3, (3, 2): 4, (1, 2): 5,
-        (4, 1): 6, (4, 2): 7, (2, 3): 8, (4, 3): 9, (3, 3): 10, (1, 3): 11,
-        (2, 4): 12, (1, 4): 13, (3, 4): 14, (4, 4): 15
-    }
-    possible_schedule_df['Day Letter'] = possible_schedule_df['EXAM DAY'].map(lambda x: {1: 'A', 2: 'B', 3: 'C', 4: 'D'}.get(x))
-    students_per_lettered_day = possible_schedule_df.groupby('Day Letter')['Count'].sum()
+        crn = input("Enter the CRN of the exam you want to change: ")
+        new_time = int(input(f"Enter the new exam time (Available times are: {available_times}): "))
 
-    most_students_day_letter = students_per_lettered_day.idxmax()
-    least_students_day_letter = students_per_lettered_day.idxmin()
+        if new_time not in available_times:
+            print(f"Invalid time selected. Please choose from the available times: {available_times}")
+            continue
 
-    print(f"Day {most_students_day_letter} has the most students and is assigned to popular day {popular_day_number}.")
-    print(f"Day {least_students_day_letter} has the least students and is assigned to least popular day {least_popular_day_number}.")
+        if crn in possible_schedule_df['CRN2'].values:
+            possible_schedule_df.loc[possible_schedule_df['CRN2'] == crn, 'EXAM TIME'] = new_time
+            print("Exam time updated.")
+        else:
+            print("CRN not found. Please try again.")
 
-    possible_schedule_df.loc[possible_schedule_df['Day Letter'] == most_students_day_letter, 'EXAM DAY'] = popular_day_number
-    possible_schedule_df.loc[possible_schedule_df['Day Letter'] == least_students_day_letter, 'EXAM DAY'] = least_popular_day_number
-
-    swap_outcomes = []  # Collect outcomes of all swaps
-    for day in possible_schedule_df['EXAM DAY'].unique():
-        outcome = swap_courses_within_same_day(possible_schedule_df, day, most_popular_time_slot)
-        swap_outcomes.append(outcome)
-
-    # Here you could log, print, or further process swap_outcomes as needed
-    for outcome in swap_outcomes:
-        print(outcome['message'])  # Example of utilizing the swap outcome messages
-
-    possible_schedule_df['NewTime'] = possible_schedule_df.apply(lambda row: newtime_mapping.get((row['EXAM DAY'], row['EXAM TIME'])), axis=1)
-    
+def update_schedule_with_new_times(possible_schedule_df, ordered_days, available_times):
+    for day in ordered_days:
+        possible_schedule_df = auto_assign_exam_times(possible_schedule_df, day, available_times)
     return possible_schedule_df
 
 
-def check_room_conflicts(possible_schedule_df, room_capacities_df):
-    
-    merged_df = pd.merge(possible_schedule_df, room_capacities_df, left_on='Final Exam Room', right_on='ROOM NAME', how='left')
+available_times = [1, 2, 3, 4]
+possible_schedule_df = pd.read_excel("Possible_Schedule.xlsx")
+day_counts_sorted = aggregate_student_counts(possible_schedule_df)
+ordered_days = get_user_day_order(day_counts_sorted)
+possible_schedule_df_updated = update_schedule_with_new_times(possible_schedule_df, ordered_days, available_times)
 
-    # Identify conflicts
-    conflict_df = merged_df[merged_df['Count'] > merged_df['CAPACITY']]
-    if not conflict_df.empty:
-        print("Room conflicts found where the count exceeds room capacity:")
-        print(conflict_df[['Final Exam Room', 'Count', 'CAPACITY']])
-    else:
-        print("No room conflicts found.")
-    return conflict_df
+# Give the user the option to change exam times
+change_exam_time_if_desired(possible_schedule_df_updated, available_times)
 
-possible_schedule_path = r"C:\Users\richa\Downloads\COOP\Possible_Schedule.xlsx" 
-room_capacities_path = r"C:\Users\richa\Downloads\COOP\RoomCapacities.xlsx"
-possible_schedule_df = pd.read_excel(possible_schedule_path)
-room_capacities_df = pd.read_excel(room_capacities_path)
 
-optimized_schedule_df = popular_time_day_schedule(possible_schedule_df, 2, 4, 2)
-
-# After optimizing the schedule, check for room conflicts
-conflict_df = check_room_conflicts(optimized_schedule_df, room_capacities_df)
-
-optimized_output_path = "popular_time_day_schedule.xlsx"
-optimized_schedule_df.to_excel(optimized_output_path, index=False)
-print(f"Optimized schedule saved to {optimized_output_path}")
-
-if not conflict_df.empty:
-    conflict_output_path = "room_conflicts.xlsx"
-    conflict_df.to_excel(conflict_output_path, index=False)
-    print(f"Room conflicts saved to {conflict_output_path}")
+possible_schedule_df_updated.to_excel("Updated_Possible_Schedule.xlsx", index=False)
+print("Updated schedule saved to 'Updated_Possible_Schedule.xlsx'.")
