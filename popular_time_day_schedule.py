@@ -84,14 +84,47 @@ def update_schedule_with_new_times(possible_schedule_df, ordered_days, available
         possible_schedule_df = auto_assign_exam_times(possible_schedule_df, day, available_times)
     return possible_schedule_df
 
+newtime_mapping = {
+    (1, 1): 0,
+    (2, 1): 1,
+    (2, 2): 2,
+    (3, 1): 3,
+    (3, 2): 4,
+    (1, 2): 5,
+    (4, 1): 6,
+    (4, 2): 7,
+    (2, 3): 8,
+    (4, 3): 9,
+    (3, 3): 10,
+    (1, 3): 11,
+    (2, 4): 12,
+    (1, 4): 13,
+    (3, 4): 14,
+    (4, 4): 15
+}
+
+def apply_new_time_mappings(possible_schedule_df, newtime_mapping):
+    
+    for index, row in possible_schedule_df.iterrows():
+        day_time_key = (row['EXAM DAY'], row['EXAM TIME'])  
+        if day_time_key in newtime_mapping: 
+            # Check if this key exists in the mapping
+            new_time = newtime_mapping[day_time_key]  
+            # Get the new time value
+            possible_schedule_df.at[index, 'NewTime'] = new_time 
+        else:
+            print(f"No new time mapping found for: {day_time_key}")
+    return possible_schedule_df
+
 
 available_times = [1, 2, 3, 4]
 possible_schedule_df = pd.read_excel("Possible_Schedule.xlsx")
 day_counts_sorted = aggregate_student_counts(possible_schedule_df)
-
 ordered_days = get_user_day_order()
 
 possible_schedule_df_updated = update_schedule_with_new_times(possible_schedule_df, ordered_days, available_times)
+
+possible_schedule_df_updated = apply_new_time_mappings(possible_schedule_df_updated, newtime_mapping)
 
 change_exam_time_if_desired(possible_schedule_df_updated, available_times)
 
