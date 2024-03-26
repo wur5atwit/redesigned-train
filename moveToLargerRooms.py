@@ -8,18 +8,18 @@ class moveToLargerRooms:
         room_capacities = pd.read_excel(room_capacities_path)
 
         # Prepare room capacities, excluding 'ANXCN106', and sort by capacity in descending order
-        room_capacities.rename(columns={'ROOM NAME': 'Room', 'CAPACITY': 'Capacity'}, inplace=True)
+        room_capacities.rename(columns={'ROOM_NAME': 'Room', 'CAPACITY': 'Capacity'}, inplace=True)
         large_rooms = room_capacities[room_capacities['Room'] != 'ANXCN106'].sort_values(by='Capacity', ascending=False)
 
         # Initialize a dictionary to keep track of room assignments for each NewTime
         assigned_rooms_per_newtime = {}
 
-        for newtime in sorted(exam_schedule['NewTime'].unique()):
+        for newtime in sorted(exam_schedule['NEW_TIME'].unique()):
             assigned_rooms_per_newtime[newtime] = set()
-            exams_at_newtime = exam_schedule[exam_schedule['NewTime'] == newtime]
+            exams_at_newtime = exam_schedule[exam_schedule['NEW_TIME'] == newtime]
 
             for index, exam in exams_at_newtime.iterrows():
-                if exam['Final Exam Room'] == 'ANXCN106':
+                if exam['EXAM_ROOM'] == 'ANXCN106':
                     # Keep 'ANXCN106' assignments unchanged
                     exam_schedule.at[index, 'New Assigned Room'] = 'ANXCN106'
                 else:
@@ -31,7 +31,7 @@ class moveToLargerRooms:
                             break
 
         
-        final_sorted_schedule = exam_schedule.sort_values(by=['NewTime', 'Count'], ascending=[True, False])
+        final_sorted_schedule = exam_schedule.sort_values(by=['NEW_TIME', 'COUNT'], ascending=[True, False])
 
         
         final_sorted_schedule.to_excel(output_file_path, index=False)

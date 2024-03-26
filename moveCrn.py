@@ -8,7 +8,7 @@ class ConflictChecker:
         
 
         def has_time_overlap(schedule):
-            time_slots = schedule['NewTime'].tolist()
+            time_slots = schedule['NEW_TIME'].tolist()
             return len(time_slots) != len(set(time_slots))  # Overlap if duplicates exist
 
         faculty_conflicts = 0
@@ -35,15 +35,15 @@ class ConflictChecker:
         df_merged = pd.merge(df_students_filtered, df_possible_schedule_exploded, on='CRN', how='left')
 
         def has_time_overlap(schedule):
-            time_slots = schedule['NewTime'].tolist()
+            time_slots = schedule['NEW_TIME'].tolist()
             return len(time_slots) != len(set(time_slots)) 
 
         student_conflicts = 0
         students_with_conflicts = []
 
         # Check for conflicts
-        for student in df_merged['STUDENT NAME'].unique():
-            student_schedule = df_merged[df_merged['STUDENT NAME'] == student]
+        for student in df_merged['STUDENT_NAME'].unique():
+            student_schedule = df_merged[df_merged['STUDENT_NAME'] == student]
             if has_time_overlap(student_schedule):
                 student_conflicts += 1
                 students_with_conflicts.append(student)
@@ -53,16 +53,16 @@ class ConflictChecker:
     def count_room_conflicts(df_room_capacities, df_possible_schedule):
         
         
-        df_merged = pd.merge(df_possible_schedule, df_room_capacities, left_on='Final Exam Room', right_on='ROOM NAME', how='left')
+        df_merged = pd.merge(df_possible_schedule, df_room_capacities, left_on='EXAM_ROOM', right_on='ROOM_NAME', how='left')
 
         # Identify conflicts where the number of students exceeds room capacity
-        conflict_rooms = df_merged[df_merged['Count'] > df_merged['CAPACITY']]
+        conflict_rooms = df_merged[df_merged['COUNT'] > df_merged['CAPACITY']]
 
         # Count the number of conflicts
         num_conflicts = conflict_rooms.shape[0]
 
         # Extract details of the conflicts
-        conflict_details = conflict_rooms[['Final Exam Room', 'Count', 'CAPACITY']]
+        conflict_details = conflict_rooms[['EXAM_ROOM', 'COUNT', 'CAPACITY']]
 
 
         return num_conflicts, conflict_details
@@ -76,7 +76,7 @@ class ConflictChecker:
 
         df_merged = pd.merge(df_students, df_possible_schedule_exploded, left_on='CRN', right_on='CRN2')
 
-        exam_count_per_student = df_merged.groupby(['STUDENT NAME', 'EXAM DAY']).size().reset_index(name='Exam Count')
+        exam_count_per_student = df_merged.groupby(['STUDENT_NAME', 'EXAM_DAY']).size().reset_index(name='Exam Count')
 
         # Identify students with three or more exams on the same day
         students_with_multiple_exams = exam_count_per_student[exam_count_per_student['Exam Count'] >= 3].copy()
@@ -89,16 +89,16 @@ class ConflictChecker:
             return [atoi(c) for c in re.split(r'(\d+)', text)]
 
         # Apply natural sort
-        students_with_multiple_exams.sort_values(by='STUDENT NAME', key=lambda x: x.map(natural_keys), inplace=True)
+        students_with_multiple_exams.sort_values(by='STUDENT_NAME', key=lambda x: x.map(natural_keys), inplace=True)
 
-        num_students = students_with_multiple_exams['STUDENT NAME'].nunique()
+        num_students = students_with_multiple_exams['STUDENT_NAME'].nunique()
 
 
         return num_students, students_with_multiple_exams
 
     def count_double_booked_rooms(df_possible_schedule):
         # Group by room and NewTime
-        room_booking_counts = df_possible_schedule.groupby(['Final Exam Room', 'NewTime']).size().reset_index(name='Booking Count')
+        room_booking_counts = df_possible_schedule.groupby(['EXAM_ROOM', 'NEW_TIME']).size().reset_index(name='Booking Count')
 
         # Identify double bookings where a room is booked more than once at the same time
         double_booked_rooms = room_booking_counts[room_booking_counts['Booking Count'] > 1]
@@ -114,11 +114,11 @@ class moveCrn:
     def notify_about_moving_multi_section_courses(self, crn2_str, df_student, df_schedule):
         message = ""
         moving_crn_list = crn2_str.split('-')
-        moving_course_titles = df_student[df_student['CRN'].astype(str).isin(moving_crn_list)]['title'].unique()
+        moving_course_titles = df_student[df_student['CRN'].astype(str).isin(moving_crn_list)]['TITLE'].unique()
         
         for title in moving_course_titles:
             # Find all CRNs for courses with this title, excluding the moving CRNs
-            all_crns_for_title = df_student[df_student['title'] == title]['CRN'].unique()
+            all_crns_for_title = df_student[df_student['TITLE'] == title]['CRN'].unique()
             crns_excluding_moving = [crn for crn in all_crns_for_title if str(crn) not in moving_crn_list]
             
             if not crns_excluding_moving: 
@@ -133,13 +133,13 @@ class moveCrn:
 
 
     def find_larger_available_room(self, crn2_str, current_room, newtime, df_room_capacities, modified_schedule):
-        current_capacity = df_room_capacities.loc[df_room_capacities['ROOM NAME'] == current_room, 'CAPACITY'].iloc[0]
-        available_rooms = df_room_capacities[(df_room_capacities['CAPACITY'] > current_capacity) & (~df_room_capacities['ROOM NAME'].isin(["ANXCN106"]))].sort_values('CAPACITY', ascending=True)
+        current_capacity = df_room_capacities.loc[df_room_capacities['ROOM_NAME'] == current_room, 'CAPACITY'].iloc[0]
+        available_rooms = df_room_capacities[(df_room_capacities['CAPACITY'] > current_capacity) & (~df_room_capacities['ROOM_NAME'].isin(["ANXCN106"]))].sort_values('CAPACITY', ascending=True)
         
         for _, room_row in available_rooms.iterrows():
-            room_name = room_row['ROOM NAME']
+            room_name = room_row['ROOM_NAME']
             # Check if this room is already booked at the newtime
-            if modified_schedule[(modified_schedule['Final Exam Room'] == room_name) & (modified_schedule['NewTime'] == newtime)].empty:
+            if modified_schedule[(modified_schedule['EXAM_ROOM'] == room_name) & (modified_schedule['NEW_TIME'] == newtime)].empty:
                 return room_name, f"CRN2 {crn2_str} moved to a larger room: {room_name}"
         return current_room, f"CRN2 {crn2_str} remains in the same room: {current_room}"
 
@@ -180,14 +180,14 @@ class moveCrn:
             if crn2_exists.any():
                 moving_message = self.notify_about_moving_multi_section_courses(crn2_str, f23_students_df, exam_schedule_df)
                 
-                original_room = modified_schedule.loc[crn2_exists, 'Final Exam Room'].iloc[0]
+                original_room = modified_schedule.loc[crn2_exists, 'EXAM_ROOM'].iloc[0]
                 larger_room, room_message = self.find_larger_available_room(crn2_str, original_room, newtime, room_capacities_df, modified_schedule)
                 
 
-                modified_schedule.loc[crn2_exists, 'EXAM DAY'] = new_day
-                modified_schedule.loc[crn2_exists, 'EXAM TIME'] = new_time
-                modified_schedule.loc[crn2_exists, 'NewTime'] = newtime
-                modified_schedule.loc[crn2_exists, 'Final Exam Room'] = larger_room if larger_room != "ANXCN106" else original_room
+                modified_schedule.loc[crn2_exists, 'EXAM_DAY'] = new_day
+                modified_schedule.loc[crn2_exists, 'EXAM_TIME'] = new_time
+                modified_schedule.loc[crn2_exists, 'NEW_TIME'] = newtime
+                modified_schedule.loc[crn2_exists, 'EXAM_ROOM'] = larger_room if larger_room != "ANXCN106" else original_room
            
             
                 faculty_conflicts = ConflictChecker.count_faculty_conflicts(modified_schedule)

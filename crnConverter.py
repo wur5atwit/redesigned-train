@@ -13,7 +13,7 @@ class crnConverter:
         df_students_filtered = df_students[(df_students['CREDIT'] != 0)]
        
         # Group by instructor and title, and combine CRNs
-        combined_crn = df_students_filtered.groupby(['course_instructor', 'title'])['CRN'].apply(
+        combined_crn = df_students_filtered.groupby(['INSTRUCTOR', 'TITLE'])['CRN'].apply(
             lambda x: '-'.join(sorted(set(x.astype(str))))
         ).reset_index()
 
@@ -22,7 +22,7 @@ class crnConverter:
 
         # Merge the CRN2 data with the original DataFrame
         
-        merged_df = pd.merge(df_students, combined_crn, on=['course_instructor', 'title'], how='left')
+        merged_df = pd.merge(df_students, combined_crn, on=['INSTRUCTOR', 'TITLE'], how='left')
 
        
         merged_df.to_excel(save_path, index=False)
