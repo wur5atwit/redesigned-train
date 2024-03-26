@@ -32,7 +32,7 @@ class conflictChecker:
         # Convert CRN to string and filter out 0 credit classes
         df_students['CRN'] = df_students['CRN'].astype(str)
         df_students_filtered = df_students[df_students['CREDIT'] != 0]
-
+        df_students_filtered = df_students_filtered.drop_duplicates(subset=['STUDENT NAME', 'CRN'])
         # Prepare the possible schedule data
         df_possible_schedule['CRN'] = df_possible_schedule['CRN2'].str.split('-')
         df_possible_schedule_exploded = df_possible_schedule.explode('CRN')
@@ -93,36 +93,26 @@ class conflictChecker:
     @staticmethod
     def count_students_with_multiple_exams(path_to_f23_students, path_to_possible_schedule):
         start_time = time.time()
-
+     
         df_f23_students = pd.read_excel(path_to_f23_students)
         df_possible_schedule = pd.read_excel(path_to_possible_schedule)
-
-        # Prepare CRN fields for merging
+  
         df_f23_students['CRN'] = df_f23_students['CRN'].astype(str)
-        df_possible_schedule['CRN2'] = df_possible_schedule['CRN2'].astype(str).str.split('-')
-        df_possible_schedule_exploded = df_possible_schedule.explode('CRN2')
+        df_possible_schedule_exploded = df_possible_schedule.assign(CRN2=df_possible_schedule['CRN2'].astype(str).str.split('-')).explode('CRN2')
 
-        df_merged = pd.merge(df_f23_students, df_possible_schedule_exploded, left_on='CRN', right_on='CRN2')
+        df_merged = pd.merge(df_f23_students, df_possible_schedule_exploded, left_on='CRN', right_on='CRN2', how='inner')
 
-        exam_count_per_student = df_merged.groupby(['STUDENT NAME', 'EXAM DAY']).size().reset_index(name='Exam Count')
+        # Group by student name and exam day, and count unique exams
+        exam_count_per_student = df_merged.groupby(['STUDENT NAME', 'EXAM DAY'])['CRN'].nunique().reset_index(name='Exam Count')
 
-        # Identify students with three or more exams on the same day
-        students_with_multiple_exams = exam_count_per_student[exam_count_per_student['Exam Count'] >= 3].copy()
+        # Filter for students with 3 or more exams on the same day
+        students_with_multiple_exams = exam_count_per_student[exam_count_per_student['Exam Count'] >= 3]
 
-        # Function to extract numbers from the string for sorting
-        def atoi(text):
-            return int(text) if text.isdigit() else text
-
-        def natural_keys(text):
-            return [atoi(c) for c in re.split(r'(\d+)', text)]
-
-        # Apply natural sort
-        students_with_multiple_exams.sort_values(by='STUDENT NAME', key=lambda x: x.map(natural_keys), inplace=True)
-
+        # Count the number of unique students with multiple exams
         num_students = students_with_multiple_exams['STUDENT NAME'].nunique()
 
-        end_time = time.time() 
-        execution_time = end_time - start_time 
+        end_time = time.time()
+        execution_time = end_time - start_time
         print(f"Execution time for count_students_with_multiple_exams: {execution_time} seconds")
 
         return num_students, students_with_multiple_exams
