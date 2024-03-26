@@ -1,6 +1,6 @@
 
 Student file needs these data: "STUDENT_NAME", "TITLE", "INSTRUCTOR", "CRN", "CREDIT"<br />
-Exam Schedule needs these data: "CRN2", "INSTRUCTOR", "NEW_TIME", "EXAM_ROOM", EXAM_DAY<br />
+Exam Schedule needs these data: "CRN2", "INSTRUCTOR", "NEW_TIME", "EXAM_ROOM", "EXAM_DAY", "EXAM_TIME", "COUNT" <br />
 Room capacities file needs these data: "ROOM_NAME", "CAPACITY"<br />
 
 CRN Convert to CRN2 will take a file that contains CRN.<br />
@@ -14,6 +14,9 @@ Will give the biggest rooms to the biggest class sizes.<br />
 
 CRN2 Separator will take in a file that contains CRN2.<br />
 It will turn CRN2 data back into CRN.<br />
+
+Move CRN will take in Student, Exam, and Room files.<br />
+It will run through all the times for a given CRN to see if there are other conflicts in other times.<br />
 
 Merged student and exam schedule: "STUDENT_NAME", "CRN2", "CRN", "INSTRUCTOR", "CREDIT", "NEW_TIME", "EXAM_ROOM"<br />
 --**HOW TO RUN**--
