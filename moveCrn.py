@@ -68,7 +68,7 @@ class ConflictChecker:
 
     def count_students_with_multiple_exams(df_students, df_possible_schedule):
         
-        
+        print()
         df_students['CRN'] = df_students['CRN'].astype(str)
         df_possible_schedule['CRN2'] = df_possible_schedule['CRN2'].astype(str).str.split('-')
         df_possible_schedule_exploded = df_possible_schedule.explode('CRN2')
