@@ -22,11 +22,10 @@ class ConflictChecker:
         return faculty_conflicts
     
     def count_student_conflicts(df_students, df_possible_schedule):
-        # Convert CRN to string and filter out 0 credit classes
         df_students['CRN'] = df_students['CRN'].astype(str)
         df_students_filtered = df_students[df_students['CREDIT'] != 0]
-
-        
+        df_students_filtered = df_students_filtered.drop_duplicates(subset=['STUDENT_NAME', 'CRN'])
+        # Prepare the possible schedule data
         df_possible_schedule['CRN'] = df_possible_schedule['CRN2'].str.split('-')
         df_possible_schedule_exploded = df_possible_schedule.explode('CRN')
         df_possible_schedule_exploded['CRN'] = df_possible_schedule_exploded['CRN'].astype(str)
@@ -68,8 +67,8 @@ class ConflictChecker:
         return num_conflicts, conflict_details
 
     def count_students_with_multiple_exams(df_students, df_possible_schedule):
-
         
+        print()
         df_students['CRN'] = df_students['CRN'].astype(str)
         df_possible_schedule['CRN2'] = df_possible_schedule['CRN2'].astype(str).str.split('-')
         df_possible_schedule_exploded = df_possible_schedule.explode('CRN2')
@@ -241,4 +240,3 @@ class moveCrn:
 ])
 
         return formatted_summaries
-
