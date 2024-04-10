@@ -67,20 +67,26 @@ class ConflictChecker:
         return num_conflicts, conflict_details
 
     def count_students_with_multiple_exams(df_students, df_possible_schedule):
-        
- 
+        # Convert CRN to string
         df_students['CRN'] = df_students['CRN'].astype(str)
         df_possible_schedule['CRN2'] = df_possible_schedule['CRN2'].astype(str).str.split('-')
+
+        # Remove duplicates based on student name and CRN within df_students
+        df_students = df_students.drop_duplicates(subset=['STUDENT_NAME', 'CRN'])
+        
+        # Explode df_possible_schedule based on CRN2
         df_possible_schedule_exploded = df_possible_schedule.explode('CRN2')
 
+        # Merge df_students and df_possible_schedule_exploded based on CRN
         df_merged = pd.merge(df_students, df_possible_schedule_exploded, left_on='CRN', right_on='CRN2')
 
+        # Calculate exam count per student
         exam_count_per_student = df_merged.groupby(['STUDENT_NAME', 'EXAM_DAY']).size().reset_index(name='Exam Count')
 
         # Identify students with three or more exams on the same day
         students_with_multiple_exams = exam_count_per_student[exam_count_per_student['Exam Count'] >= 3].copy()
 
-        # Function to extract numbers from the string for sorting
+        # Functions to extract numbers from strings for sorting
         def atoi(text):
             return int(text) if text.isdigit() else text
 
@@ -90,8 +96,8 @@ class ConflictChecker:
         # Apply natural sort
         students_with_multiple_exams.sort_values(by='STUDENT_NAME', key=lambda x: x.map(natural_keys), inplace=True)
 
+        # Count unique students
         num_students = students_with_multiple_exams['STUDENT_NAME'].nunique()
-
 
         return num_students, students_with_multiple_exams
 
